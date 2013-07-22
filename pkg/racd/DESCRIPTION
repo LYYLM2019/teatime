@@ -1,0 +1,13 @@
+Package: racd
+Type: Package
+Title: Autoregressive Conditional Density Models
+Version: 1.0-1
+Date: 2013-05-15
+Author: Alexios Ghalanos <alexios@4dscape.com>
+Maintainer: Alexios Ghalanos <alexios@4dscape.com>
+Depends: R (>= 3.0.0), methods
+Imports: rugarch, xts, Rsolnp, ucminf, numDeriv, zoo, parma
+Description: Hansen's ACD based model with extensions and a wide choice of skewed and heavy-tailed distributions
+Collate: acd-classes.R acd-dbounds.R acd-solvers.R acd-startpars.R acd-helperfn.R acd-sacd.R acd-csacd.R acd-mcsacd.R acd-main.R acd-plots.R acd-methods.R zzz.R
+LazyLoad: yes
+License: GPL-3

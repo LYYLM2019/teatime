@@ -1,0 +1,13 @@
+Package: spd
+Type: Package
+Title: Semi Parametric Distribution
+Version: 1.9
+Date: 2013-04-10
+Author: alexios ghalanos <alexios@4dscape.com>
+Maintainer: alexios ghalanos <alexios@4dscape.com>
+Description: Semi Parametric Piecewise Distribution
+Collate: misc-spd.R classes-spd.R methods-GPD.R methods-spdFit.R methods-spdDistribution.R methods-spdPlots.R
+Depends: methods
+Imports: KernSmooth
+LazyLoad: yes
+License: GPL

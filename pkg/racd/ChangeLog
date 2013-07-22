@@ -1,0 +1,8 @@
+2013-05-15  Alexios Ghalanos <alexios@4dscape.com>
+* DESCRIPTION (Version): First version is 1.0-1
+* Change to starting parameter search algorithm to take into account
+persistence constraint for variance.
+
+
+2013-04-30  Alexios Ghalanos <alexios@4dscape.com>
+* DESCRIPTION (Version): First version is 1.0-0
