@@ -1,0 +1,14 @@
+Package: dbm
+Type: Package
+Title: Dynamic Binary Model
+Version: 1.0-0
+Date: 2013-07-01
+Author: Alexios Ghalanos <alexios@4dscape.com>
+Maintainer: Alexios Ghalanos <alexios@4dscape.com>
+Depends: R (>= 3.0.0), Rcpp, methods
+LinkingTo: Rcpp
+Imports: Rsolnp, numDeriv, xts, zoo, chron, nloptr, Epi
+Description: Dynamic Binary Model
+Collate: auxilliary.R estimation.R methods.R postestimation.R prediction.R
+LazyLoad: yes
+License: GPL-3

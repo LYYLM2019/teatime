@@ -1,0 +1,35 @@
+%\VignetteIndexEntry{Dynamic Binary Model}
+%\VignettePackage{dbm}
+\documentclass[11pt,a4paper]{article}
+\usepackage[utf8]{inputenc}
+\usepackage[round]{natbib}
+\usepackage{graphicx}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{anysize}
+\usepackage{amsfonts}
+\usepackage{lscape}
+\usepackage{ctable}
+\usepackage{subfig}
+\usepackage{hyperref}
+\newcommand{\proglang}[1]{\textsf{#1}}
+\marginsize{2cm}{2cm}{1cm}{1cm}
+\setlength{\textwidth}{16cm}
+\setlength{\oddsidemargin}{0cm}
+\setlength{\textheight}{24cm}
+\setlength{\headheight}{2cm}
+\newtheorem{proof}{Proof}
+\usepackage{Sweave}
+\bibliographystyle{plainnat}
+\begin{document}    
+\title{The dbm package\\
+(Version 1.0-0)}
+\author{Alexios Ghalanos}
+\date{\today}
+\maketitle
+\tableofcontents
+\newpage
+\input{dbm_main.tex}
+\clearpage
+\bibliography{dbmbib}
+\end{document}
