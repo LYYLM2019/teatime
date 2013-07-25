@@ -147,7 +147,6 @@ summary.dbm = function(object, ...)
 	ans$n.obs = length(fitted(object))
 	ans$model.epcp = object$fit$model.epcp
 	ans$null.epcp = object$fit$null.epcp
-	names(ans$hoslem) <- c("X-squared", "dof", "p-value")
 	ans$mfRsq = 1 - (ans$likelihood/(ans$null.deviance/2))
 	ans$csRsq = 1 - (ans$likelihood/(ans$null.deviance/2))^(2/ans$n.obs)
 	ans$tjRsq = tjur.rsq(object)
