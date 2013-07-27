@@ -15,7 +15,7 @@ variations in \cite{Zeileis2011}(skew-or generalized-logit), \cite{Zeileis2011a}
 and \cite{Heinze2013} (bias reduction methods), to name but a few. The \verb@dbm@ package uniquely implements the
 autoregressive model of \cite{Kauppi2008} which is believed to provide a much improved fit to typical problems in
 the time series domain.\\
-The vignette discusses the model background in Section \ref{sec:background} and its implementation in 
+The vignette discusses the model background in Section \ref{sec:background} and its implementation in
 Section \ref{sec:implementation}. An interesting application, and exposition of the package's functionality
 is available on my blog (see below). The appendix derives the analytic gradient expressions used in
 the numeric optimization routines.\\
@@ -107,11 +107,11 @@ not pass any of the data lagged since that is done by the routine (which is why 
 the lags for the auto-regression in the dynamics and dependent variable, respectively, but as currently implemented only lag 1 is allowed. The \emph{ecm}
 option indicates whether to use the error correction restriction of \cite{Nyberg2011}, \emph{constant} whether to include an intercept, and \emph{link}
 the CDF link function with a choice of 'gaussian' (probit), 'logistic' (logit) and 'burr' (scobit). The other options are related to the parameter start,
-fixed values (as a named vector), the choice of solver etc. Standard extraction and inference methods such as \emph{fitted}, \emph{residuals}, 
+fixed values (as a named vector), the choice of solver etc. Standard extraction and inference methods such as \emph{fitted}, \emph{residuals},
 \emph{coef}, \emph{vcov} (with choice of robust), \emph{likelihood}, \emph{deviance} (with null model choice), \emph{plot} and \emph{summary}. Additionally,
 a score method is also included to extract either the analytic or numeric scores with the option of also recalculating them for a new set of parameters.
-This is particularly useful when performing a Lagrange Multiplier (\emph{LM}) test which requires the score of the fixed parameter. The blog post provides
-an example of this. Some additional functions are also included and documented in the package help.\\
+This is particularly useful when performing a Lagrange Multiplier (\emph{LM}) test which requires the score of the fixed parameter. An example of this and 
+additional functions are documented in the package help.\\
 Finally, it is up to the user to determine the adequacy of the estimated model. There are a lot of packages on CRAN which implement diagnostic tests, and
 the \verb@dbm@ package returns enough information in the estimated object (including the scores) in order to run most of the available tests. There are a
 number of important issues to keep in mind when estimating a model, including heteroscedasticity, partial or complete non-separation, and
