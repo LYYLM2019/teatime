@@ -65,6 +65,58 @@ numDeriv package).
 The methods provided allow for extracting or calculating useful values from
 the estimated object of class \sQuote{dbm}.
 }
+\examples{
+\dontrun{
+require(xts)
+require(TTR)
+data(recession)
+tmp = recession$T10Y - recession$TB3M
+recession$spread =  tmp - EMA(tmp, 6)
+recession$cpiadj = ROC(recession$CPI,n=12,type="discrete")-SMA(ROC(recession$CPI,n=12,type="discrete"), 6)
+
+##############################
+# EXAMPLE 1: Lagrange Multiplier Test (is alpha[1]=0?)
+##############################
+y = recession[,c("OECDR","spread","cpiadj")]
+y = na.omit(y)
+mod = dbm(y, x.vars = c("spread","cpiadj"), x.lags = 3, arp = 1, arq = 1,
+fixed.pars = c("alpha[1]"=0))
+# extract the coefficients and add back the alpha[1] parameter with the restricted
+# value (zero) so that we can re-calculate the scores:
+cf = c(coef(mod), "alpha[1]"=0)
+S = score(mod, pars =  cf, analytic=TRUE)
+# Use Outer-Product of Gradients Hessian
+H = solve(crossprod(S))
+G = colSums(S)
+# stat = as.numeric(t(G) %*% H %*% G)
+stat = as.numeric(t(G) \%*\% H \%*\% G)
+pvalue = pchisq(stat, 1,lower.tail=FALSE)
+if(pvalue<0.1) cat("\nReject H0 (restricted model) at the 10 pct significance level\n")
+##############################
+# EXAMPLE 2: Different Lags Same Explanatory Variable
+##############################
+# assume we want to include lags 1, 3, and 5 on the spread
+y = recession[,c("OECDR","spread","spread","spread")]
+colnames(y)[2:4]<-c("spread1","spread3","spread5")
+y = na.omit(y)
+mod = dbm(y, x.vars = c("spread1","spread3","spread5"), x.lags = c(1,3,5), 
+arp = 1, arq = 1)
+##############################
+# EXAMPLE 3: Methods
+##############################
+y = recession[,c("OECDR","spread","cpiadj")]
+y = na.omit(y)
+mod = dbm(y, x.vars = c("spread","cpiadj"), x.lags = c(1,2), arp = 1, arq = 1)
+likelihood(mod)
+# null= TRUE returns the null deviance
+c(deviance(mod), deviance(mod, null=TRUE))
+# standard and robust covariance matrices
+vcov(mod)
+vcov(mod, robust=TRUE)
+# check analytical and numeric scores:
+head(score(mod, analytic=TRUE) - score(mod, analytic=FALSE))
+}
+}
 \author{
 Alexios Ghalanos
 }
