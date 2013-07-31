@@ -3,7 +3,9 @@
 	* small correction to quantile function for ugarchsim/ugarchpath (resulted
 	in error when called as there was a stray comma in the matrix size 
 	setup). Fix also to quantile method for roll (resulted in error when called).
-
+	* correction to calculation of hessian after previous version removal of Rcpp
+	code introduced an old bug.
+	
 2013-07-07  Alexios Ghalanos <alexios@4dscape.com>
 	* DESCRIPTION (Version): New version is 1.2-7.
 	* removed Rcpp hessian calculation code (caused memory leak), and reverted
