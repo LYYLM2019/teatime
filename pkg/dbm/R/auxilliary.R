@@ -155,7 +155,7 @@ shadeplot.xts = function(signal, series, signal.col = "WhiteSmoke",
 	plot(as.numeric(series[,1]), type="l", xaxt = "n", ylab="",xlab="", main = main, ylim = ylim, yaxs = "i")
     signal = signal[index(series)]
     start = which(diff(signal)==1)
-    end = which(diff(signal)==(-1))
+    end = which(diff(signal)==(-1))-2
     if(length(end)<length(start)) end = c(end, length(signal))
     if(length(end)>length(start)) start = c(1, start)
     miny = min(series, na.rm=TRUE)

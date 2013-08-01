@@ -15,7 +15,7 @@ series.col = "steelblue", main = "", ylim = c(min(series), max(series)), ...)
 \arguments{
 \item{signal}{
 An xts signal object with the shading denoted by 1, and non-shading denoted by
--1.
+0.
 }
 \item{series}{
 An xts object on which shading overlay is to be performed given the signal.
