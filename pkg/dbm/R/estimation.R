@@ -179,7 +179,7 @@ dbm = function(y, x.vars = NULL, x.lags = 1, arp = 1, arq = 0, ecm = FALSE,
 			if(idx[3]>0) LB[which(substr(pnames, 1,5)=="alpha")]=-0.99999
 			if(idx[3]>0) UB[which(substr(pnames, 1,5)=="alpha")]= 0.99999
 			if(idx[6]==3) LB[which(substr(pnames, 1,4)=="burr")] = 0.1
-			if(idx[6]==3) UB[which(substr(pnames, 1,4)=="burr")] = 25
+			if(idx[6]==3) UB[which(substr(pnames, 1,4)=="burr")] = 100
 		} else{
 			arglist$transform = TRUE
 		}
@@ -220,7 +220,7 @@ dbm = function(y, x.vars = NULL, x.lags = 1, arp = 1, arq = 0, ecm = FALSE,
 		if(idx[3]>0) LB[which(substr(pnames, 1,5)=="alpha")]=-0.99999
 		if(idx[3]>0) UB[which(substr(pnames, 1,5)=="alpha")]= 0.99999
 		if(idx[6]==3) LB[which(substr(pnames, 1,4)=="burr")] = 0.1
-		if(idx[6]==3) UB[which(substr(pnames, 1,4)=="burr")] = 25
+		if(idx[6]==3) UB[which(substr(pnames, 1,4)=="burr")] = 100
 		sol = gosolnp(pars = spars, fun = dbmlik, arglist = arglist, control = control, 
 				LB = LB, UB = UB, ...)
 		pars = sol$pars
@@ -231,7 +231,7 @@ dbm = function(y, x.vars = NULL, x.lags = 1, arp = 1, arq = 0, ecm = FALSE,
 		if(idx[3]>0) LB[which(substr(pnames, 1,5)=="alpha")]=-0.99999
 		if(idx[3]>0) UB[which(substr(pnames, 1,5)=="alpha")]= 0.99999
 		if(idx[6]==3) LB[which(substr(pnames, 1,4)=="burr")] = 0.1
-		if(idx[6]==3) UB[which(substr(pnames, 1,4)=="burr")] = 25
+		if(idx[6]==3) UB[which(substr(pnames, 1,4)=="burr")] = 100
 		if(idx[6]==1){
 			sol = nloptr(x0 = spars,  eval_f = dbmlik, 
 					eval_grad_f = gr, eval_g_ineq = NULL, 
@@ -258,7 +258,7 @@ dbm = function(y, x.vars = NULL, x.lags = 1, arp = 1, arq = 0, ecm = FALSE,
 		if(arglist$transform && !any(fnames=="alpha[1]")) pars[paste("alpha[",1:idx[3],"]",sep="")] = logtransform(pars[paste("alpha[",1:idx[3], "]",sep="")],-0.99999,0.99999)
 	}
 	if(arglist$transform && idx[6]==3 && !any(fnames=="burr[k]")){
-		pars["burr[k]"] = logtransform(pars["burr[k]"], 0.01, 25)
+		pars["burr[k]"] = logtransform(pars["burr[k]"], 0.01, 100)
 	}
 	arglist$transform = FALSE
 	fit = .postestimate(f = dbmlik, pars, arglist)
@@ -327,7 +327,7 @@ dbmlik = function(pars, arglist)
 	if(idx[2]>0) beta = pars[paste("beta[",1:idx[2], "]",sep="")] else beta = 0
 	if(idx[6]==3){
 		k = pars["burr[k]"]
-		if(arglist$transform && !any(arglist$fnames=="burr[k]")) k = logtransform(k, 0.01, 25) else k = max(0.01, k)
+		if(arglist$transform && !any(arglist$fnames=="burr[k]")) k = logtransform(k, 0.01, 100) else k = max(0.01, k)
 	} else{
 		k = 1
 	}
@@ -651,7 +651,7 @@ dbmderiv3 = function(pars, arglist)
 			dpdelta = double(n)
 		}
 	}
-	if(arglist$transform && !any(arglist$fnames=="burr[k]")) k = logtransform(pars["burr[k]"], 0.01, 25) else k = max(0.01, pars["burr[k]"])
+	if(arglist$transform && !any(arglist$fnames=="burr[k]")) k = logtransform(pars["burr[k]"], 0.01, 100) else k = max(0.01, pars["burr[k]"])
 	dk = double(1)
 	dvk = double(n)
 	dpk = double(n)

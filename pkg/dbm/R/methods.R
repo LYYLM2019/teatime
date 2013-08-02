@@ -92,13 +92,12 @@ plot.dbm = function(x, ...)
 	tmp=y[index(f), x$model$yname]
 	tmp = as.numeric(tmp)
 	start = which(diff(tmp)==1)
-	end = which(diff(tmp)==(-1))
+	end = which(diff(tmp)==(-1))-1
+	if(length(start)==0 && length(end)>0) start=1
 	if(length(end)<length(start)) end = c(end, length(y))
 	n = length(start)
 	for(i in 1:n){
-		segments(x0 = start[i]:end[i], y0 = rep(-0.01,length(start[i]:end[i])), 
-				x1 = start[i]:end[i],  y1 = rep(1, length(start[i]:end[i])), 
-				col="WhiteSmoke",  lwd=3) 
+		rect(start[i], -0.01, end[i],  1, col="WhiteSmoke",  lwd=5, border = FALSE)
 	}
 	lines(as.numeric(f))
 	axis(1, at = ep, labels = names(ep), tick = TRUE)

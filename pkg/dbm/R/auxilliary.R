@@ -155,16 +155,15 @@ shadeplot.xts = function(signal, series, signal.col = "WhiteSmoke",
 	plot(as.numeric(series[,1]), type="l", xaxt = "n", ylab="",xlab="", main = main, ylim = ylim, yaxs = "i")
     signal = signal[index(series)]
     start = which(diff(signal)==1)
-    end = which(diff(signal)==(-1))-2
+    end = which(diff(signal)==(-1))-1
+	if(length(start)==0 && length(end)>0) start=1	
     if(length(end)<length(start)) end = c(end, length(signal))
     if(length(end)>length(start)) start = c(1, start)
     miny = min(series, na.rm=TRUE)
     maxy = max(series, na.rm=TRUE)
     n = length(start)
     for(i in 1:n){
-    	segments(x0 = start[i]:end[i], y0 = rep(miny,length(start[i]:end[i])), 
-                x1 = start[i]:end[i],  y1 = rep(maxy, length(start[i]:end[i])), 
-                col = signal.col,  lwd=6)
+		rect(start[i], miny, end[i],  maxy, col= signal.col, border = FALSE)
     }
 	lines(as.numeric(series), col = series.col, ...)
 	axis(1, at = ep, labels = names(ep), tick = TRUE)
