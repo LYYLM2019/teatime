@@ -39,7 +39,7 @@ The autoregressive lags for the regressand variable.
 }
   \item{link}{
 The link (cdf transformation) function (\dQuote{gaussian} for probit, 
-\dQuote{logistic} for logit, and dQuote{burr} for skew-logit).
+\dQuote{logistic} for logit, and dQuote{glogistic} for skew-logit).
 }
   \item{fixed.pars}{
 An optional named vector of parameters. If all the parameters are fixed then
@@ -75,9 +75,9 @@ recommended way to solve this model. Because of the absence of upper and lower
 bounds in the case of optim, the autoregressive parameter on the dynamics 
 equation  (\dQuote{alpha}) is restricted between -1 and 1 using a logistic
 transformation during the estimation phase, and similarly for the power parameter
-when using the Burr-10 link function which is constrained to be positive. The 
-bounding transformation is lifted once the parameters are estimated and 
-transformed so that standard errors and related statistics are correctly 
+when using the Generalized Logistic link function which is constrained to be 
+positive. The bounding transformation is lifted once the parameters are estimated 
+and transformed so that standard errors and related statistics are correctly 
 calculated.
 }
 \value{

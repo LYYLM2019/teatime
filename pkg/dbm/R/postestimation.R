@@ -53,7 +53,7 @@
 		fit$fitted.values = plogis(temp$mpu)
 	} else{
 		zpars = c(pars, arglist$fpars)
-		fit$fitted.values = plogis(temp$mpu)^zpars["burr[k]"]
+		fit$fitted.values = plogis(temp$mpu)^zpars["skew[k]"]
 	}
 	fit$mpu = temp$mpu
 	fit$LLH = -temp$llh

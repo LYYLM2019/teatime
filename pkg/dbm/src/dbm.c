@@ -20,7 +20,7 @@
 # include <Rmath.h>
 # include "dbm.h"
 
-double pburr2(const double p, const double k)
+double pglogis(const double p, const double k)
 {
 	double ans = pow(1.0/(1.0+exp(-1.0*p)), k);
 	return ans;
@@ -33,7 +33,7 @@ double dlink(const double p, const double y, const int link, const double k)
 	} else if(link==2){
 		tmp = plogis(p, 0, 1, 1, 0);
 	} else{
-		tmp = pburr2(p, k);
+		tmp = pglogis(p, k);
 	}
 	ans = y*log(tmp) + (1-y)*log(1-tmp);
 	return ans;
@@ -341,7 +341,7 @@ void c_dbmderiv2(double *y, double *x, double *mpu,
 	}
 }
 
-// Burr Type 2 Link
+// Generalized Logistic
 void c_dbmderiv3(double *y, double *x, double *mpu, double *meanx, double *meany,
 		double *omega, double *alpha, double *delta, double *beta, double *k,
 		double *domega, double *dalpha, double *ddelta, double *dbeta, double *dk,

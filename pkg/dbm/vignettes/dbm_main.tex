@@ -48,7 +48,7 @@ Formally,
 {E_{t - 1}}\left( {{y_t}} \right) = {P_{t - 1}}\left( {y = 1} \right) = \Phi {\text{ }}\left( {{\pi _t}} \right) = {p_t}
 \end{equation}
 The CDF function, also called the link function, can be one of any number of distributions but has typically been either the Gaussian (probit model),
-Logistic (logit model) or some skewed variation (scobit model). In the \verb@dbm@ package, the Burr-10 distribution has been chosen as a skewed choice since
+Logistic (logit model) or some skewed variation (scobit model). In the \verb@dbm@ package, the Generalized Logistic distribution has been chosen as a skewed choice since
 it nests the Logistic. In the model of \cite{Kauppi2008}, the dynamics of $\pi_t$ take on the following form:
 \begin{equation}\label{eq:dbm}
 {\pi _t} = \omega  + \sum\limits_{i = 1}^k {{\beta _i}{x_{i,t - {l_i}}}}  + \sum\limits_{i = 1}^q {{\delta _i}{y_{t - i}}}  + \sum\limits_{i = 1}^p {{\alpha _i}{\pi _{t - i}}}
@@ -79,8 +79,9 @@ Some caution is warranted here since the multi-path forecast, while explicit, st
 \section{Implementation}\label{sec:implementation}
 The dbm package estimates the model of \cite{Kauppi2008} by maximum likelihood using analytic gradient information which is passed to the appropriate solver.
 The default is to use the Nelder-Mead algorithm from the optim package with the use of a bounding logistic transformation for the parameters which are constrained
-to ensure either stationarity (autoregressive parameter $\alpha$) or existence in the real domain (the Burr-10 asymmetry parameter $burr[k]$). The result of
-using such a transformation (given that the optim package does not necessarily include lower and upper bounds for all but one solver), is that the gradient of
+to ensure either stationarity (autoregressive parameter $\alpha$) or existence in the real domain (the Generalized Logistic skew parameter
+$skew[k]$).
+The result of using such a transformation (given that the optim package does not necessarily include lower and upper bounds for all but one solver), is that the gradient of
 those parameters are shifted slightly from the unconstrained case and I make no special provision to account for this. Since the transformation is turned off
 during the calculation of the final hessian and scores, the standard errors and resulting information is not affected, and it is also my experience that
 estimation is not in the slightest affected by this. If in doubt, there is always the possibility of using any of bound constrained solvers from the nloptr package
@@ -106,11 +107,11 @@ variable, then the y matrix must include that same variable data as many times a
 not pass any of the data lagged since that is done by the routine (which is why \emph{x.lags} is used). The \emph{arp} and \emph{arp} options denote
 the lags for the auto-regression in the dynamics and dependent variable, respectively, but as currently implemented only lag 1 is allowed. The \emph{ecm}
 option indicates whether to use the error correction restriction of \cite{Nyberg2011}, \emph{constant} whether to include an intercept, and \emph{link}
-the CDF link function with a choice of 'gaussian' (probit), 'logistic' (logit) and 'burr' (scobit). The other options are related to the parameter start,
-fixed values (as a named vector), the choice of solver etc. Standard extraction and inference methods such as \emph{fitted}, \emph{residuals},
+the CDF link function with a choice of 'gaussian' (probit), 'logistic' (logit) and 'glogistic' (scobit). The other options are related to
+the parameter start, fixed values (as a named vector), the choice of solver etc. Standard extraction and inference methods such as \emph{fitted}, \emph{residuals},
 \emph{coef}, \emph{vcov} (with choice of robust), \emph{likelihood}, \emph{deviance} (with null model choice), \emph{plot} and \emph{summary}. Additionally,
 a score method is also included to extract either the analytic or numeric scores with the option of also recalculating them for a new set of parameters.
-This is particularly useful when performing a Lagrange Multiplier (\emph{LM}) test which requires the score of the fixed parameter. An example of this and 
+This is particularly useful when performing a Lagrange Multiplier (\emph{LM}) test which requires the score of the fixed parameter. An example of this and
 additional functions are documented in the package help.\\
 Finally, it is up to the user to determine the adequacy of the estimated model. There are a lot of packages on CRAN which implement diagnostic tests, and
 the \verb@dbm@ package returns enough information in the estimated object (including the scores) in order to run most of the available tests. There are a
@@ -206,12 +207,16 @@ where the error function $erf$ is used to approximate the Gaussian distribution.
 \end{gathered}
 \end{equation}
 The ${\partial {\pi _{t - 1}}\left( \theta  \right)}$ is based on the initialization values and their partial derivatives given in Equation \ref{eq:rcsderiv}.
-\subsection{Burr-10}
-The Burr-10 distribution, described in \cite{Nagler1994}, allows for the asymmetric impact of the explanatory variables with the following distribution function:
+\subsection{Generalized Logistic}
+The Generalized Logistic distribution allows for the asymmetric impact of the explanatory variables with the following distribution
+function:
 \begin{equation}
 \Phi \left( {{y_t}} \right) = {\left( {1 + {e^{ - {\pi_t}}}} \right)^{ - k}},
 \end{equation}
-with $k \in {\Re ^ + }$ and $\pi_t$ representing the dynamics given in Equation \ref{eq:dbm}. This has also been called the \emph{scobit} or generalized logistic model\footnote{See for instance \cite{Zeileis2011} for \emph{one} implementation.} since it nests the logistic distribution when $k=1$. The log-likelihood to be maximized in the binary response model is then given by the following equation at time $t$:
+with $k \in {\Re ^ + }$ and $\pi_t$ representing the dynamics given in Equation \ref{eq:dbm}. This has also been called the \emph{scobit}
+model\footnote{See for instance \cite{Zeileis2011} for \emph{one} implementation.} since it nests the logistic distribution when
+$k=1$.
+The log-likelihood to be maximized in the binary response model is then given by the following equation at time $t$:
 \begin{equation}
 {l_t}\left( \theta  \right) = {y_t}\log \left( {{{\left( {1 + {e^{ - {\pi _t}}}} \right)}^{ - k}}} \right) + \left( {1 - {y_t}} \right)\log \left( {1 - {{\left( {1 + {e^{ - {\pi _t}}}} \right)}^{ - k}}} \right)
 \end{equation}

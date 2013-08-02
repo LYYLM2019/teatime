@@ -43,7 +43,7 @@ dbm = function(y, x.vars = NULL, x.lags = 1, arp = 1, arq = 0, ecm = FALSE,
 	}
 	modelnames = c(if(constant) "omega" else NULL, if(!is.null(x.vars)) paste("beta[",1:length(x.vars),"]",sep="") else NULL,
 			if(arp>0) paste("alpha[",1:arp,"]",sep="") else NULL, if(arq>0 && !ecm) paste("delta[",1:arq,"]",sep="") else NULL,
-			if(link=="burr") "burr[k]" else NULL)
+			if(link=="glogistic") "skew[k]" else NULL)
 	idx = rep(0, 6)
 	if(constant){
 		idx[1] = 1
@@ -110,9 +110,9 @@ dbm = function(y, x.vars = NULL, x.lags = 1, arp = 1, arq = 0, ecm = FALSE,
 		arq  = 1
 		delta = NULL
 	}
-	if(link=="burr"){
+	if(link=="glogistic"){
 		k = 1
-		pnames = c(pnames, "burr[k]")
+		pnames = c(pnames, "skew[k]")
 		idx[6] = as.integer(3)
 	} else{
 		k = NULL
@@ -178,8 +178,8 @@ dbm = function(y, x.vars = NULL, x.lags = 1, arp = 1, arq = 0, ecm = FALSE,
 		if(solver!="optim"){
 			if(idx[3]>0) LB[which(substr(pnames, 1,5)=="alpha")]=-0.99999
 			if(idx[3]>0) UB[which(substr(pnames, 1,5)=="alpha")]= 0.99999
-			if(idx[6]==3) LB[which(substr(pnames, 1,4)=="burr")] = 0.1
-			if(idx[6]==3) UB[which(substr(pnames, 1,4)=="burr")] = 100
+			if(idx[6]==3) LB[which(substr(pnames, 1,4)=="skew")] = 0.1
+			if(idx[6]==3) UB[which(substr(pnames, 1,4)=="skew")] = 100
 		} else{
 			arglist$transform = TRUE
 		}
@@ -219,8 +219,8 @@ dbm = function(y, x.vars = NULL, x.lags = 1, arp = 1, arq = 0, ecm = FALSE,
 		UB =  25*abs(spars)
 		if(idx[3]>0) LB[which(substr(pnames, 1,5)=="alpha")]=-0.99999
 		if(idx[3]>0) UB[which(substr(pnames, 1,5)=="alpha")]= 0.99999
-		if(idx[6]==3) LB[which(substr(pnames, 1,4)=="burr")] = 0.1
-		if(idx[6]==3) UB[which(substr(pnames, 1,4)=="burr")] = 100
+		if(idx[6]==3) LB[which(substr(pnames, 1,4)=="skew")] = 0.1
+		if(idx[6]==3) UB[which(substr(pnames, 1,4)=="skew")] = 100
 		sol = gosolnp(pars = spars, fun = dbmlik, arglist = arglist, control = control, 
 				LB = LB, UB = UB, ...)
 		pars = sol$pars
@@ -230,8 +230,8 @@ dbm = function(y, x.vars = NULL, x.lags = 1, arp = 1, arq = 0, ecm = FALSE,
 		UB = 25*abs(spars)
 		if(idx[3]>0) LB[which(substr(pnames, 1,5)=="alpha")]=-0.99999
 		if(idx[3]>0) UB[which(substr(pnames, 1,5)=="alpha")]= 0.99999
-		if(idx[6]==3) LB[which(substr(pnames, 1,4)=="burr")] = 0.1
-		if(idx[6]==3) UB[which(substr(pnames, 1,4)=="burr")] = 100
+		if(idx[6]==3) LB[which(substr(pnames, 1,4)=="skew")] = 0.1
+		if(idx[6]==3) UB[which(substr(pnames, 1,4)=="skew")] = 100
 		if(idx[6]==1){
 			sol = nloptr(x0 = spars,  eval_f = dbmlik, 
 					eval_grad_f = gr, eval_g_ineq = NULL, 
@@ -257,8 +257,8 @@ dbm = function(y, x.vars = NULL, x.lags = 1, arp = 1, arq = 0, ecm = FALSE,
 	if(idx[3]>0){
 		if(arglist$transform && !any(fnames=="alpha[1]")) pars[paste("alpha[",1:idx[3],"]",sep="")] = logtransform(pars[paste("alpha[",1:idx[3], "]",sep="")],-0.99999,0.99999)
 	}
-	if(arglist$transform && idx[6]==3 && !any(fnames=="burr[k]")){
-		pars["burr[k]"] = logtransform(pars["burr[k]"], 0.01, 100)
+	if(arglist$transform && idx[6]==3 && !any(fnames=="skew[k]")){
+		pars["skew[k]"] = logtransform(pars["skew[k]"], 0.01, 100)
 	}
 	arglist$transform = FALSE
 	fit = .postestimate(f = dbmlik, pars, arglist)
@@ -281,7 +281,7 @@ dbm = function(y, x.vars = NULL, x.lags = 1, arp = 1, arq = 0, ecm = FALSE,
 		# need to create a function for this
 		if(!is.null(x.vars) | arp>0 | arq >0){
 			newmod = dbm(model$y[,yname], x.vars = NULL, x.lags = 0, arp = 0, arq = 0, 
-					ecm = FALSE, constant = TRUE, link = "burr", fixed.pars = NULL, 
+					ecm = FALSE, constant = TRUE, link = "glogistic", fixed.pars = NULL, 
 					solver = "optim", control=list(maxit=50000,trace=0), 
 					parsearch = FALSE, parsim = 5000, method = "Nelder-Mead")
 			null.deviance = deviance(newmod)
@@ -326,8 +326,8 @@ dbmlik = function(pars, arglist)
 	}
 	if(idx[2]>0) beta = pars[paste("beta[",1:idx[2], "]",sep="")] else beta = 0
 	if(idx[6]==3){
-		k = pars["burr[k]"]
-		if(arglist$transform && !any(arglist$fnames=="burr[k]")) k = logtransform(k, 0.01, 100) else k = max(0.01, k)
+		k = pars["skew[k]"]
+		if(arglist$transform && !any(arglist$fnames=="skew[k]")) k = logtransform(k, 0.01, 100) else k = max(0.01, k)
 	} else{
 		k = 1
 	}
@@ -358,6 +358,67 @@ dbmlik = function(pars, arglist)
 	ans = switch(arglist$type,
 			llh = tmp$llh,
 			lik = tmp$lik,
+			ALL = list(llh = tmp$llh, lik = tmp$lik, mpu = tmp$mpu))
+	return(ans)
+}
+
+dbmlikpen = function(pars, arglist)
+{
+	# extract parameters and prepare vectors
+	zpars = pars
+	idx = arglist$idx
+	dbmenv<-arglist$dbmenv
+	names(pars)<-arglist$pnames
+	if(!is.null(arglist$fidx)){
+		pars = c(pars, arglist$fpars)
+	}
+	if(idx[1]>0) omega = pars["omega"] else omega = 0
+	if(idx[3]>0){
+		alpha = pars[paste("alpha[",1:idx[3], "]",sep="")]
+		if(arglist$transform && !any(arglist$fnames=="alpha[1]")) alpha = logtransform(alpha, -0.99999, 0.99999)
+	} else{
+		alpha = 0
+	}
+	if(idx[5]>0){
+		delta = 0
+	} else{
+		if(idx[4]>0) delta = pars[paste("delta[",1:idx[4], "]",sep="")] else delta = 0
+	}
+	if(idx[2]>0) beta = pars[paste("beta[",1:idx[2], "]",sep="")] else beta = 0
+	if(idx[6]==3){
+		k = pars["skew[k]"]
+		if(arglist$transform && !any(arglist$fnames=="skew[k]")) k = logtransform(k, 0.01, 100) else k = max(0.01, k)
+	} else{
+		k = 1
+	}
+	x = arglist$x
+	y = arglist$y
+	n = length(y)
+	mpu = double(n)
+	xidx = arglist$xidx
+	# recursion initialization
+	rcs = omega + mean(y)*delta[1]
+	if(idx[2]>0) rcs = rcs + sum(colMeans(x)*beta)
+	if(idx[3]>0) rcs = rcs/(1-alpha[1])
+	# Likelihood Evaluation C
+	tmp = try(.C("c_dbmestimate", y = as.double(y), x = as.double(as.vector(x)), 
+					mpu = as.double(mpu), mpuinit = as.double(rcs),
+					omega = as.double(omega), alpha = as.double(alpha), 
+					delta = as.double(delta), beta = as.double(beta), 
+					k = as.double(k),
+					lik = double(n), llh = double(1), idx = as.integer(idx), 
+					xidx = as.integer(xidx), T = as.integer(n), 
+					PACKAGE="dbm"), silent = TRUE)
+	# Check and return
+	if(is.na(tmp$llh) | is.nan(tmp$llh) | !is.finite(tmp$llh)){
+		return(llh = get("dbm_llh", dbmenv) + 0.25*(abs(get("dbm_llh", dbmenv))))
+	} else{
+		assign("dbm_llh", tmp$llh, envir = dbmenv)
+	}
+	penlik = 0.5*sum(zpars*zpars) + arglist$Cost*tmp$lik
+	ans = switch(arglist$type,
+			llh = tmp$llh,
+			lik = penlik,
 			ALL = list(llh = tmp$llh, lik = tmp$lik, mpu = tmp$mpu))
 	return(ans)
 }
@@ -651,7 +712,7 @@ dbmderiv3 = function(pars, arglist)
 			dpdelta = double(n)
 		}
 	}
-	if(arglist$transform && !any(arglist$fnames=="burr[k]")) k = logtransform(pars["burr[k]"], 0.01, 100) else k = max(0.01, pars["burr[k]"])
+	if(arglist$transform && !any(arglist$fnames=="skew[k]")) k = logtransform(pars["skew[k]"], 0.01, 100) else k = max(0.01, pars["skew[k]"])
 	dk = double(1)
 	dvk = double(n)
 	dpk = double(n)
@@ -751,6 +812,13 @@ dbmderiv3 = function(pars, arglist)
 	} else{
 		delta = NULL
 	}
+	if(model$link=="glogistic"){
+		k = 1
+		pnames = c(pnames, "skew[k]")
+	} else{
+		k = NULL
+	}
+	
 	n = as.integer(NROW(y))
 	pmu = double(n)
 	if( length(pnames)==0 ) stop("\nmodel has not coefficients!")
@@ -779,6 +847,13 @@ dbmderiv3 = function(pars, arglist)
 		if(idx[4]>0) delta = pars[paste("delta[",1:idx[4], "]",sep="")] else delta = 0
 	}
 	if(idx[2]>0) beta = pars[paste("beta[",1:idx[2], "]",sep="")] else beta = 0
+	if(model$link=="glogistic"){
+		idx[6] = 1
+		k = pars["skew[k]"]
+	} else{
+		k = 1
+	}
+	
 	n = length(y)
 	mpu = double(n)
 	# recursion initialization
@@ -791,7 +866,7 @@ dbmderiv3 = function(pars, arglist)
 					mpu = as.double(mpu), 
 					omega = as.double(omega), alpha = as.double(alpha), 
 					delta = as.double(delta), beta = as.double(beta), 
-					idx = as.integer(idx), xidx = as.integer(xidx), 
+					k = as.double(k), idx = as.integer(idx), xidx = as.integer(xidx), 
 					lik = double(n), T = as.integer(c(0,n)), 
 					PACKAGE="dbm"), silent = TRUE)
 	fit = list()
@@ -803,11 +878,30 @@ dbmderiv3 = function(pars, arglist)
 	fit$mpu = temp$mpu
 	fit$residuals = (y - fit$mpu)/(fit$mpu*(1-fit$mpu))
 	if(idx[6]==1){
-		null.deviance = deviance(eval(parse(text=paste("glm(",yname,"~1, family=binomial(probit), data=as.data.frame(y))",sep=""))))
+		gfit<-eval(parse(text=paste("glm(",yname,"~1, family=binomial(probit), data=as.data.frame(y))",sep="")))
+		null.deviance = deviance(gfit)
+		null.epcp = epcp.default(fitted(gfit), y = as.numeric(model$y))
+	} else if(idx[6]==2){
+		gfit<-eval(parse(text=paste("glm(",yname,"~1, family=binomial(logit), data=as.data.frame(y))",sep="")))
+		null.deviance = deviance(gfit)
+		null.epcp = epcp.default(fitted(gfit), y = as.numeric(model$y))
 	} else{
-		null.deviance = deviance(eval(parse(text=paste("glm(",yname,"~1, family=binomial(logit), data=as.data.frame(y))",sep=""))))
+		# need to create a function for this
+		if(!is.null(model$x.vars) | arp>0 | arq >0){
+			newmod = dbm(model$y[,yname], x.vars = NULL, x.lags = 0, arp = 0, arq = 0, 
+					ecm = FALSE, constant = TRUE, link = "glogistic", fixed.pars = NULL, 
+					solver = "optim", control=list(maxit=50000,trace=0), 
+					parsearch = FALSE, parsim = 5000, method = "Nelder-Mead")
+			null.deviance = deviance(newmod)
+			null.epcp = epcp.dbm(newmod)
+		} else {
+			null.deviance = NA
+			null.epcp = NA
+		}
 	}
+	fit$null.epcp = null.epcp
 	fit$null.deviance = null.deviance
+	fit$model.epcp = epcp.default(fit$fitted.values, as.numeric(model$y))
 	model$estimation = "filter"
 	out = list(model = model, fit = fit)
 	class(out) <- "dbm"

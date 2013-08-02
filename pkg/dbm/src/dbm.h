@@ -16,7 +16,7 @@
 #################################################################################*/
 #ifndef DBM_H
 #define DBM_H
-double pburr2(const double , const double );
+double pglogis(const double , const double );
 double dlink(const double , const double , const int, const double );
 void c_dbmestimate(double *y, double *x, double *mpu, double *mpuinit, double *omega,
 		double *alpha, double *delta, double *beta, double *k,

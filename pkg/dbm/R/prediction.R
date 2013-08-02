@@ -41,7 +41,7 @@ predict.dbm = function(object, newdata = NULL, n.ahead=1, ...)
 		if(idx[4]>0) delta = pars[paste("delta[",1:idx[4], "]",sep="")] else delta = 0
 	}
 	if(idx[2]>0) beta = pars[paste("beta[",1:idx[2], "]",sep="")] else beta = 0
-	if(idx[6]==3) kappa = pars["burr[k]"] else kappa = 1
+	if(idx[6]==3) kappa = pars["skew[k]"] else kappa = 1
 	y = object$model$y[,object$model$yname]
 	if(idx[2]>0) x = coredata(object$model$y[,object$model$x.vars]) else x = 0
 	T0 = NROW(y)
