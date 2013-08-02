@@ -9,6 +9,8 @@
 \alias{score}
 \alias{likelihood.default}
 \alias{likelihood}
+\alias{BIC.dbm}
+\alias{AIC.dbm}
 \alias{deviance.dbm}
 \alias{summary.dbm}
 \alias{print.dbm}
@@ -28,6 +30,8 @@ dbm object.
 \method{deviance}{dbm}(object, null=FALSE,...)
 \method{likelihood}{dbm}(object, ...)
 \method{likelihood}{default}(object, ...)
+\method{AIC}{dbm}(object,...)
+\method{BIC}{dbm}(object,...)
 \method{summary}{dbm}(object,...)
 \method{score}{dbm}(object, pars = NULL, analytic = TRUE, ... )
 \method{print}{dbm}(x, digits = max(3L, getOption("digits") - 3L), ...)

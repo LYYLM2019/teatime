@@ -18,12 +18,12 @@ likelihood = function(object, ... ) { UseMethod("likelihood") }
 
 likelihood.default <- function(object, ...)
 { 
-	return( -object$fit$LLH )
+	return( object$fit$LLH )
 }
 
 likelihood.dbm = function(object, ...)
 {
-	return( -object$fit$LLH )
+	return( object$fit$LLH )
 }
 
 score = function(object, pars = NULL, analytic = TRUE, ... ) { UseMethod("score") }
@@ -136,6 +136,25 @@ residuals.dbm = function(object, ...)
 	return(ans)
 }
 
+BIC.dbm = function(object, ...)
+{
+	nObs = NROW(object$model$y)
+	nPars = length(coef(object))
+	LLH = likelihood(object)
+	ans = (-2*LLH)/nObs + nPars * log(nObs)/nObs
+	return( ans )
+}
+
+AIC.dbm = function(object, ...)
+{
+	nObs = NROW(object$model$y)
+	nPars = length(coef(object))
+	LLH = likelihood(object)
+	ans = (-2*LLH)/nObs + 2 * nPars/nObs
+	return( ans )
+}
+
+
 summary.dbm = function(object, ...)
 {
 	ans = list()
@@ -195,7 +214,6 @@ epcp.default = function(x, y = NULL)
 	ans = (sum(x[y==1]) + sum(1-x[y==0]))/length(y)
 	return(ans)
 }
-
 ###############################################################################
 # Hosmer-Lemeshow Goodness of Fit (GOF) Test
 # Code adapted from the ResourceSelection package of Solymos et al.
