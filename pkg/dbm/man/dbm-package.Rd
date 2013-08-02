@@ -12,8 +12,8 @@ and provides a set of methods for working with the estimated object.
 \tabular{ll}{
 Package: \tab dbm\cr
 Type: \tab Package\cr
-Version: \tab 1.0-0\cr
-Date: \tab 2013-07-15\cr
+Version: \tab 1.0-1\cr
+Date: \tab 2013-08-02\cr
 License: \tab GPL\cr
 LazyLoad: \tab yes\cr
 Imports: \tab Rsolnp, numDeriv, xts, zoo, chron, nloptr, Epi}
@@ -25,7 +25,7 @@ and only data which can be coerced to such will be accepted by the package.}
  author       = {Alexios Ghalanos},
  title        = {{dbm}: Dynamic Binary Model.},
  year         = {2013},
- note 	      = {R package version 1.0-0.},}}
+ note 	      = {R package version 1.0-1.},}}
 \emph{}
 }
 \section{License}{

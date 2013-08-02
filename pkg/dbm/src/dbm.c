@@ -39,7 +39,7 @@ double dlink(const double p, const double y, const int link, const double k)
 	return ans;
 }
 void c_dbmestimate(double *y, double *x, double *mpu, double *mpuinit, double *omega,
-		double *alpha, double *delta, double *beta, double *k,
+		double *alpha, double *delta, double *beta, double *k, double *Cost,
 		double *lik, double *llh, int *idx, int *xidx, int *T)
 {
 	int i, j, ind;
@@ -83,6 +83,10 @@ void c_dbmestimate(double *y, double *x, double *mpu, double *mpuinit, double *o
 			}
 		}
 		lik[i] = dlink(mpu[i], y[i], idx[5], k[0]);
+		//subtract the regularization cost from the maximization
+		if(idx[6]==1){
+			lik[i]-= Cost[0];
+		}
 		*llh += lik[i];
 	}
 	*llh *= -1.0;
@@ -96,7 +100,7 @@ void c_dbmderiv1(double *y, double *x, double *mpu,
 		double *dalpha, double *ddelta, double *dbeta,
 		double *dpomega, double *dpalpha, double *dpdelta, double *dpbeta,
 		double *dvomega, double *dvalpha, double *dvdelta, double *dvbeta,
-		int *idx, int *xidx, int *T)
+		double *Cost, int *idx, int *xidx, int *T)
 {
 	int i, j, ind;
 	double xtmp = 0.0;
@@ -161,17 +165,17 @@ void c_dbmderiv1(double *y, double *x, double *mpu,
 			} else{
 				dpomega[i] = 1.0 + alpha[0]/(1.0-alpha[0]);
 			}
-			*domega += xtmp * dpomega[i];
-			dvomega[i] = xtmp * dpomega[i];
+			*domega += xtmp * dpomega[i] - Cost[0] * omega[0];
+			dvomega[i] = xtmp * dpomega[i] - Cost[0] * omega[0];
 		}
 		if(idx[2]>0){
 			if(i>0){
 				dpalpha[i] = mpu[i-1] + alpha[0] * dpalpha[i-1];
-				dvalpha[i] = xtmp * dpalpha[i];
+				dvalpha[i] = xtmp * dpalpha[i] - Cost[0] * alpha[0];
 				*dalpha += dvalpha[i];
 			} else{
 				dpalpha[i] = mpuinit + (alpha[0]*mpuinit)/(1-alpha[0]);
-				dvalpha[i] = xtmp * dpalpha[i];
+				dvalpha[i] = xtmp * dpalpha[i] - Cost[0] * alpha[0];
 				*dalpha += dvalpha[i];
 			}
 		}
@@ -181,12 +185,16 @@ void c_dbmderiv1(double *y, double *x, double *mpu,
 					if(i>0){
 						if(i>j){
 							dpdelta[i+(*T * j)] = y[i-(j+1)] + alpha[0] * dpdelta[i+(*T * j)-1];
-							dvdelta[i+(*T * j)] = xtmp*dpdelta[i+(*T * j)];
+							dvdelta[i+(*T * j)] = xtmp*dpdelta[i+(*T * j)] - Cost[0] * delta[j];
+							ddelta[j] += dvdelta[i+(*T * j)];
+						} else{
+							dpdelta[i+(*T * j)] = alpha[0] * dpdelta[i+(*T * j)-1];
+							dvdelta[i+(*T * j)] = xtmp*dpdelta[i+(*T * j)] - Cost[0] * delta[j];
 							ddelta[j] += dvdelta[i+(*T * j)];
 						}
 					} else{
 						dpdelta[i+(*T * j)] = (alpha[0] * meany[0])/(1 - alpha[0]);
-						dvdelta[i+(*T * j)] = xtmp*dpdelta[i+(*T * j)];
+						dvdelta[i+(*T * j)] = xtmp*dpdelta[i+(*T * j)] - Cost[0] * delta[j];
 						ddelta[j] += dvdelta[i+(*T * j)];
 					}
 				}
@@ -198,12 +206,16 @@ void c_dbmderiv1(double *y, double *x, double *mpu,
 					ind = (i-xidx[j]) + ( *T * j );
 					if(i>=xidx[j]){
 						dpbeta[i+(*T * j)] = x[ind] + alpha[0] * dpbeta[i+(*T * j)-1];
-						dvbeta[i+(*T * j)] =  xtmp * dpbeta[i+(*T * j)];
+						dvbeta[i+(*T * j)] =  xtmp * dpbeta[i+(*T * j)] - Cost[0] * beta[j];
+						dbeta[j] += dvbeta[i+(*T * j)] ;
+					} else{
+						dpbeta[i+(*T * j)] = alpha[0] * dpbeta[i+(*T * j)-1];
+						dvbeta[i+(*T * j)] =  xtmp * dpbeta[i+(*T * j)] - Cost[0] * beta[j];
 						dbeta[j] += dvbeta[i+(*T * j)] ;
 					}
 				} else{
 					dpbeta[i+(*T * j)] = (alpha[0] * meanx[j])/(1 - alpha[0]);
-					dvbeta[i+(*T * j)] =  xtmp * dpbeta[i+(*T * j)];
+					dvbeta[i+(*T * j)] =  xtmp * dpbeta[i+(*T * j)] - Cost[0] * beta[j];
 					dbeta[j] += dvbeta[i+(*T * j)] ;
 				}
 
@@ -219,7 +231,7 @@ void c_dbmderiv2(double *y, double *x, double *mpu,
 		double *dalpha, double *ddelta, double *dbeta,
 		double *dpomega, double *dpalpha, double *dpdelta, double *dpbeta,
 		double *dvomega, double *dvalpha, double *dvdelta, double *dvbeta,
-		int *idx, int *xidx, int *T)
+		double *Cost, int *idx, int *xidx, int *T)
 {
 	int i, j, ind;
 	double xtmp = 0.0;
@@ -290,17 +302,17 @@ void c_dbmderiv2(double *y, double *x, double *mpu,
 			} else{
 				dpomega[i] = 1.0 + alpha[0]/(1.0-alpha[0]);
 			}
-			*domega += xtmp * dpomega[i];
-			dvomega[i] = xtmp * dpomega[i];
+			*domega += xtmp * dpomega[i] - Cost[0] * omega[0];
+			dvomega[i] = xtmp * dpomega[i] - Cost[0] * omega[0];
 		}
 		if(idx[2]>0){
 			if(i>0){
 				dpalpha[i] = mpu[i-1] + alpha[0] * dpalpha[i-1];
-				dvalpha[i] = xtmp * dpalpha[i];
+				dvalpha[i] = xtmp * dpalpha[i] - Cost[0] * alpha[0];
 				*dalpha += dvalpha[i];
 			} else{
 				dpalpha[i] = mpuinit + (alpha[0]*mpuinit)/(1-alpha[0]);
-				dvalpha[i] = xtmp * dpalpha[i];
+				dvalpha[i] = xtmp * dpalpha[i] - Cost[0] * alpha[0];
 				*dalpha += dvalpha[i];
 			}
 		}
@@ -310,12 +322,16 @@ void c_dbmderiv2(double *y, double *x, double *mpu,
 					if(i>0){
 						if(i>j){
 							dpdelta[i+(*T * j)] = y[i-(j+1)] + alpha[0] * dpdelta[i+(*T * j)-1];
-							dvdelta[i+(*T * j)] = xtmp*dpdelta[i+(*T * j)];
+							dvdelta[i+(*T * j)] = xtmp*dpdelta[i+(*T * j)] - Cost[0] * delta[j];
+							ddelta[j] += dvdelta[i+(*T * j)];
+						} else{
+							dpdelta[i+(*T * j)] = alpha[0] * dpdelta[i+(*T * j)-1];
+							dvdelta[i+(*T * j)] = xtmp*dpdelta[i+(*T * j)] - Cost[0] * delta[j];
 							ddelta[j] += dvdelta[i+(*T * j)];
 						}
 					} else{
 						dpdelta[i+(*T * j)] = (alpha[0] * meany[0])/(1 - alpha[0]);
-						dvdelta[i+(*T * j)] = xtmp*dpdelta[i+(*T * j)];
+						dvdelta[i+(*T * j)] = xtmp*dpdelta[i+(*T * j)] - Cost[0] * delta[j];
 						ddelta[j] += dvdelta[i+(*T * j)];
 					}
 				}
@@ -327,12 +343,16 @@ void c_dbmderiv2(double *y, double *x, double *mpu,
 					ind = (i-xidx[j]) + ( *T * j );
 					if(i>=xidx[j]){
 						dpbeta[i+(*T * j)] = x[ind] + alpha[0] * dpbeta[i+(*T * j)-1];
-						dvbeta[i+(*T * j)] =  xtmp * dpbeta[i+(*T * j)];
+						dvbeta[i+(*T * j)] =  xtmp * dpbeta[i+(*T * j)] - Cost[0] * beta[j];
+						dbeta[j] += dvbeta[i+(*T * j)] ;
+					} else{
+						dpbeta[i+(*T * j)] = alpha[0] * dpbeta[i+(*T * j)-1];
+						dvbeta[i+(*T * j)] =  xtmp * dpbeta[i+(*T * j)] - Cost[0] * beta[j];
 						dbeta[j] += dvbeta[i+(*T * j)] ;
 					}
 				} else{
 					dpbeta[i+(*T * j)] = (alpha[0] * meanx[j])/(1 - alpha[0]);
-					dvbeta[i+(*T * j)] =  xtmp * dpbeta[i+(*T * j)];
+					dvbeta[i+(*T * j)] =  xtmp * dpbeta[i+(*T * j)] - Cost[0] * beta[j];
 					dbeta[j] += dvbeta[i+(*T * j)] ;
 				}
 
@@ -347,7 +367,7 @@ void c_dbmderiv3(double *y, double *x, double *mpu, double *meanx, double *meany
 		double *domega, double *dalpha, double *ddelta, double *dbeta, double *dk,
 		double *dpomega, double *dpalpha, double *dpdelta, double *dpbeta, double *dpk,
 		double *dvomega, double *dvalpha, double *dvdelta, double *dvbeta, double *dvk,
-		int *idx, int *xidx, int *T)
+		double *Cost, int *idx, int *xidx, int *T)
 {
 	int i, j, ind;
 	double xtmp = 0.0;
@@ -417,17 +437,17 @@ void c_dbmderiv3(double *y, double *x, double *mpu, double *meanx, double *meany
 			} else{
 				dpomega[i] = 1.0 + alpha[0]/(1.0-alpha[0]);
 			}
-			*domega += xtmp * dpomega[i];
-			dvomega[i] = xtmp * dpomega[i];
+			*domega += xtmp * dpomega[i] - Cost[0] * omega[0];
+			dvomega[i] = xtmp * dpomega[i] - Cost[0] * omega[0];
 		}
 		if(idx[2]>0){
 			if(i>0){
 				dpalpha[i] = mpu[i-1] + alpha[0] * dpalpha[i-1];
-				dvalpha[i] = xtmp * dpalpha[i];
+				dvalpha[i] = xtmp * dpalpha[i] - Cost[0] * alpha[0];
 				*dalpha += dvalpha[i];
 			} else{
 				dpalpha[i] = mpuinit + (alpha[0]*mpuinit)/(1-alpha[0]);
-				dvalpha[i] = xtmp * dpalpha[i];
+				dvalpha[i] = xtmp * dpalpha[i] - Cost[0] * alpha[0];
 				*dalpha += dvalpha[i];
 			}
 		}
@@ -437,12 +457,16 @@ void c_dbmderiv3(double *y, double *x, double *mpu, double *meanx, double *meany
 					if(i>0){
 						if(i>j){
 							dpdelta[i+(*T * j)] = y[i-(j+1)] + alpha[0] * dpdelta[i+(*T * j)-1];
-							dvdelta[i+(*T * j)] = xtmp*dpdelta[i+(*T * j)];
+							dvdelta[i+(*T * j)] = xtmp*dpdelta[i+(*T * j)] - Cost[0] * delta[j];
+							ddelta[j] += dvdelta[i+(*T * j)];
+						} else{
+							dpdelta[i+(*T * j)] = alpha[0] * dpdelta[i+(*T * j)-1];
+							dvdelta[i+(*T * j)] = xtmp*dpdelta[i+(*T * j)] - Cost[0] * delta[j];
 							ddelta[j] += dvdelta[i+(*T * j)];
 						}
 					} else{
 						dpdelta[i+(*T * j)] = (alpha[0] * meany[0])/(1 - alpha[0]);
-						dvdelta[i+(*T * j)] = xtmp*dpdelta[i+(*T * j)];
+						dvdelta[i+(*T * j)] = xtmp*dpdelta[i+(*T * j)] - Cost[0] * delta[j];
 						ddelta[j] += dvdelta[i+(*T * j)];
 					}
 				}
@@ -454,19 +478,23 @@ void c_dbmderiv3(double *y, double *x, double *mpu, double *meanx, double *meany
 					ind = (i-xidx[j]) + ( *T * j );
 					if(i>=xidx[j]){
 						dpbeta[i+(*T * j)] = x[ind] + alpha[0] * dpbeta[i+(*T * j)-1];
-						dvbeta[i+(*T * j)] =  xtmp * dpbeta[i+(*T * j)];
+						dvbeta[i+(*T * j)] =  xtmp * dpbeta[i+(*T * j)] - Cost[0] * beta[j];
+						dbeta[j] += dvbeta[i+(*T * j)] ;
+					} else{
+						dpbeta[i+(*T * j)] = alpha[0] * dpbeta[i+(*T * j)-1];
+						dvbeta[i+(*T * j)] =  xtmp * dpbeta[i+(*T * j)] - Cost[0] * beta[j];
 						dbeta[j] += dvbeta[i+(*T * j)] ;
 					}
 				} else{
 					dpbeta[i+(*T * j)] = (alpha[0] * meanx[j])/(1 - alpha[0]);
-					dvbeta[i+(*T * j)] =  xtmp * dpbeta[i+(*T * j)];
+					dvbeta[i+(*T * j)] =  xtmp * dpbeta[i+(*T * j)] - Cost[0] * beta[j];
 					dbeta[j] += dvbeta[i+(*T * j)] ;
 				}
 
 			}
 		}
 		dpk[i] = -1.0;
-		dvk[i] = ktmp * dpk[i];
+		dvk[i] = ktmp * dpk[i] - Cost[0] * k[0];
 		*dk += dvk[i];
 	}
 }

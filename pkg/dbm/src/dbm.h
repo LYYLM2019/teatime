@@ -19,7 +19,7 @@
 double pglogis(const double , const double );
 double dlink(const double , const double , const int, const double );
 void c_dbmestimate(double *y, double *x, double *mpu, double *mpuinit, double *omega,
-		double *alpha, double *delta, double *beta, double *k,
+		double *alpha, double *delta, double *beta, double *k, double *Cost,
 		double *lik, double *llh, int *idx, int *xidx, int *T);
 void c_dbmfilter(double *y, double *x, double *mpu, double *omega,
 		double *alpha, double *delta, double *beta, double *k,
@@ -30,18 +30,18 @@ void c_dbmderiv1(double *y, double *x, double *mpu,
 		double *dalpha, double *ddelta, double *dbeta,
 		double *dpomega, double *dpalpha, double *dpdelta, double *dpbeta,
 		double *dvomega, double *dvalpha, double *dvdelta, double *dvbeta,
-		int *idx, int *xidx, int *T);
+		double *Cost, int *idx, int *xidx, int *T);
 void c_dbmderiv2(double *y, double *x, double *mpu,
 		double *meanx, double *meany, double *omega,
 		double *alpha, double *delta, double *beta, double *domega,
 		double *dalpha, double *ddelta, double *dbeta,
 		double *dpomega, double *dpalpha, double *dpdelta, double *dpbeta,
 		double *dvomega, double *dvalpha, double *dvdelta, double *dvbeta,
-		int *idx, int *xidx, int *T);
+		double *Cost, int *idx, int *xidx, int *T);
 void c_dbmderiv3(double *y, double *x, double *mpu, double *meanx, double *meany,
 		double *omega, double *alpha, double *delta, double *beta, double *k,
 		double *domega, double *dalpha, double *ddelta, double *dbeta, double *dk,
 		double *dpomega, double *dpalpha, double *dpdelta, double *dpbeta, double *dpk,
 		double *dvomega, double *dvalpha, double *dvdelta, double *dvbeta, double *dvk,
-		int *idx, int *xidx, int *T);
+		double *Cost, int *idx, int *xidx, int *T);
 #endif /* DBM_H */

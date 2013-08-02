@@ -1,8 +1,8 @@
 Package: dbm
 Type: Package
 Title: Dynamic Binary Model
-Version: 1.0-0
-Date: 2013-07-01
+Version: 1.0-1
+Date: 2013-08-02
 Author: Alexios Ghalanos <alexios@4dscape.com>
 Maintainer: Alexios Ghalanos <alexios@4dscape.com>
 Depends: R (>= 3.0.0), Rcpp, methods

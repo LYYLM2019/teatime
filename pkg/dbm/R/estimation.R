@@ -31,11 +31,11 @@
 # solver: either optim or gosolnp
 # control: control parameters passed to the solver
 # ...: not currently used
-# idx [omega, length(x.vars), arp, arq, use_ecm, link]
+# idx [omega, length(x.vars), arp, arq, use_ecm, link, regularize]
 dbm = function(y, x.vars = NULL, x.lags = 1, arp = 1, arq = 0, ecm = FALSE, 
 		constant = TRUE, link = "gaussian", fixed.pars = NULL, 
 		solver = "optim", control=list(), parsearch = TRUE, parsim = 5000, 
-		method = "Nelder-Mead", ...)
+		method = "Nelder-Mead", regularization = FALSE, reg.cost = 1, ...)
 {
 	if(!is(y, "xts")) stop("\ny must be an xts object")
 	if(any(is.na(y))){
@@ -44,7 +44,7 @@ dbm = function(y, x.vars = NULL, x.lags = 1, arp = 1, arq = 0, ecm = FALSE,
 	modelnames = c(if(constant) "omega" else NULL, if(!is.null(x.vars)) paste("beta[",1:length(x.vars),"]",sep="") else NULL,
 			if(arp>0) paste("alpha[",1:arp,"]",sep="") else NULL, if(arq>0 && !ecm) paste("delta[",1:arq,"]",sep="") else NULL,
 			if(link=="glogistic") "skew[k]" else NULL)
-	idx = rep(0, 6)
+	idx = rep(0, 7)
 	if(constant){
 		idx[1] = 1
 		omega  =  0
@@ -63,7 +63,8 @@ dbm = function(y, x.vars = NULL, x.lags = 1, arp = 1, arq = 0, ecm = FALSE,
 	model$link = link
 	model$ecm = ecm
 	model$constant = constant
-
+	model$regularization = regularization
+	model$reg.cost = reg.cost
 	if(!is.null(x.vars)){
 		len_x = length(x.vars)
 		tmp = match(x.vars, colnames(y))
@@ -118,7 +119,7 @@ dbm = function(y, x.vars = NULL, x.lags = 1, arp = 1, arq = 0, ecm = FALSE,
 		k = NULL
 		idx[6] = as.integer(ifelse(link=="gaussian", 1, 2))
 	}
-	
+	if(regularization) idx[7] = 1
 	n = as.integer(NROW(y))
 	pmu = double(n)
 	
@@ -167,9 +168,10 @@ dbm = function(y, x.vars = NULL, x.lags = 1, arp = 1, arq = 0, ecm = FALSE,
 	arglist$fidx = fidx
 	arglist$type = "llh"
 	arglist$derivarg = 1
+	arglist$regularization = regularization
+	if(idx[7]==1) arglist$Cost = reg.cost else arglist$Cost = 0
 	dbmenv = new.env(hash = TRUE)
 	assign("dbm_llh", 1e4, envir = dbmenv)
-	
 	arglist$dbmenv <- dbmenv
 	if(parsearch){
 		arglist$transform = FALSE
@@ -309,13 +311,20 @@ dbmlik = function(pars, arglist)
 	idx = arglist$idx
 	dbmenv<-arglist$dbmenv
 	names(pars)<-arglist$pnames
+	Cost = 0
 	if(!is.null(arglist$fidx)){
 		pars = c(pars, arglist$fpars)
 	}
-	if(idx[1]>0) omega = pars["omega"] else omega = 0
+	if(idx[1]>0){
+		omega = pars["omega"]
+		Cost = Cost+omega^2
+	} else{
+		omega = 0
+	}
 	if(idx[3]>0){
 		alpha = pars[paste("alpha[",1:idx[3], "]",sep="")]
 		if(arglist$transform && !any(arglist$fnames=="alpha[1]")) alpha = logtransform(alpha, -0.99999, 0.99999)
+		Cost = Cost+sum(alpha^2)
 	} else{
 		alpha = 0
 	}
@@ -323,11 +332,14 @@ dbmlik = function(pars, arglist)
 		delta = 0
 	} else{
 		if(idx[4]>0) delta = pars[paste("delta[",1:idx[4], "]",sep="")] else delta = 0
+		Cost = Cost+sum(delta^2)
 	}
 	if(idx[2]>0) beta = pars[paste("beta[",1:idx[2], "]",sep="")] else beta = 0
+	Cost = Cost+sum(beta^2)
 	if(idx[6]==3){
 		k = pars["skew[k]"]
 		if(arglist$transform && !any(arglist$fnames=="skew[k]")) k = logtransform(k, 0.01, 100) else k = max(0.01, k)
+		Cost = Cost+sum(k^2)
 	} else{
 		k = 1
 	}
@@ -341,11 +353,12 @@ dbmlik = function(pars, arglist)
 	if(idx[2]>0) rcs = rcs + sum(colMeans(x)*beta)
 	if(idx[3]>0) rcs = rcs/(1-alpha[1])
 	# Likelihood Evaluation C
+	Cost = (0.5*arglist$Cost * Cost)/n
 	tmp = try(.C("c_dbmestimate", y = as.double(y), x = as.double(as.vector(x)), 
 					mpu = as.double(mpu), mpuinit = as.double(rcs),
 					omega = as.double(omega), alpha = as.double(alpha), 
 					delta = as.double(delta), beta = as.double(beta), 
-					k = as.double(k),
+					k = as.double(k), Cost = as.double(Cost),
 					lik = double(n), llh = double(1), idx = as.integer(idx), 
 					xidx = as.integer(xidx), T = as.integer(n), 
 					PACKAGE="dbm"), silent = TRUE)
@@ -358,67 +371,6 @@ dbmlik = function(pars, arglist)
 	ans = switch(arglist$type,
 			llh = tmp$llh,
 			lik = tmp$lik,
-			ALL = list(llh = tmp$llh, lik = tmp$lik, mpu = tmp$mpu))
-	return(ans)
-}
-
-dbmlikpen = function(pars, arglist)
-{
-	# extract parameters and prepare vectors
-	zpars = pars
-	idx = arglist$idx
-	dbmenv<-arglist$dbmenv
-	names(pars)<-arglist$pnames
-	if(!is.null(arglist$fidx)){
-		pars = c(pars, arglist$fpars)
-	}
-	if(idx[1]>0) omega = pars["omega"] else omega = 0
-	if(idx[3]>0){
-		alpha = pars[paste("alpha[",1:idx[3], "]",sep="")]
-		if(arglist$transform && !any(arglist$fnames=="alpha[1]")) alpha = logtransform(alpha, -0.99999, 0.99999)
-	} else{
-		alpha = 0
-	}
-	if(idx[5]>0){
-		delta = 0
-	} else{
-		if(idx[4]>0) delta = pars[paste("delta[",1:idx[4], "]",sep="")] else delta = 0
-	}
-	if(idx[2]>0) beta = pars[paste("beta[",1:idx[2], "]",sep="")] else beta = 0
-	if(idx[6]==3){
-		k = pars["skew[k]"]
-		if(arglist$transform && !any(arglist$fnames=="skew[k]")) k = logtransform(k, 0.01, 100) else k = max(0.01, k)
-	} else{
-		k = 1
-	}
-	x = arglist$x
-	y = arglist$y
-	n = length(y)
-	mpu = double(n)
-	xidx = arglist$xidx
-	# recursion initialization
-	rcs = omega + mean(y)*delta[1]
-	if(idx[2]>0) rcs = rcs + sum(colMeans(x)*beta)
-	if(idx[3]>0) rcs = rcs/(1-alpha[1])
-	# Likelihood Evaluation C
-	tmp = try(.C("c_dbmestimate", y = as.double(y), x = as.double(as.vector(x)), 
-					mpu = as.double(mpu), mpuinit = as.double(rcs),
-					omega = as.double(omega), alpha = as.double(alpha), 
-					delta = as.double(delta), beta = as.double(beta), 
-					k = as.double(k),
-					lik = double(n), llh = double(1), idx = as.integer(idx), 
-					xidx = as.integer(xidx), T = as.integer(n), 
-					PACKAGE="dbm"), silent = TRUE)
-	# Check and return
-	if(is.na(tmp$llh) | is.nan(tmp$llh) | !is.finite(tmp$llh)){
-		return(llh = get("dbm_llh", dbmenv) + 0.25*(abs(get("dbm_llh", dbmenv))))
-	} else{
-		assign("dbm_llh", tmp$llh, envir = dbmenv)
-	}
-	penlik = 0.5*sum(zpars*zpars) + arglist$Cost*tmp$lik
-	ans = switch(arglist$type,
-			llh = tmp$llh,
-			lik = penlik,
 			ALL = list(llh = tmp$llh, lik = tmp$lik, mpu = tmp$mpu))
 	return(ans)
 }
@@ -494,6 +446,7 @@ dbmderiv1 = function(pars, arglist)
 		meanx = 0
 	}
 	meany = mean(y)
+	Cost = arglist$Cost/n
 	
 	tmp = try(.C("c_dbmderiv1", y = as.double(y), x = as.double(as.vector(x)), 
 					mpu = as.double(mpu), meanx = as.double(meanx), meany = as.double(meany),
@@ -505,7 +458,7 @@ dbmderiv1 = function(pars, arglist)
 					dpdelta = as.double(dpdelta), dpbeta = as.double(dpbeta), 
 					dvomega = as.double(dvomega), dvalpha = as.double(dvalpha), 
 					dvdelta = as.double(dvdelta), dvbeta = as.double(dvbeta), 
-					idx = as.integer(idx), xidx = as.integer(xidx), 
+					Cost = as.double(Cost), idx = as.integer(idx), xidx = as.integer(xidx), 
 					T = as.integer(n), 
 					PACKAGE="dbm"), silent = TRUE)
 	# Check and return
@@ -609,6 +562,7 @@ dbmderiv2 = function(pars, arglist)
 		meanx = 0
 	}
 	meany = mean(y)
+	Cost = arglist$Cost/n
 	
 	tmp = try(.C("c_dbmderiv2", y = as.double(y), x = as.double(as.vector(x)), 
 					mpu = as.double(mpu), meanx = as.double(meanx), meany = as.double(meany),
@@ -620,7 +574,7 @@ dbmderiv2 = function(pars, arglist)
 					dpdelta = as.double(dpdelta), dpbeta = as.double(dpbeta), 
 					dvomega = as.double(dvomega), dvalpha = as.double(dvalpha), 
 					dvdelta = as.double(dvdelta), dvbeta = as.double(dvbeta), 
-					idx = as.integer(idx), xidx = as.integer(xidx), 
+					Cost = as.double(Cost), idx = as.integer(idx), xidx = as.integer(xidx), 
 					T = as.integer(n), 
 					PACKAGE="dbm"), silent = TRUE)
 	# Check and return
@@ -725,6 +679,7 @@ dbmderiv3 = function(pars, arglist)
 		meanx = 0
 	}
 	meany = mean(y)
+	Cost = arglist$Cost/n
 	
 	tmp = try(.C("c_dbmderiv3", y = as.double(y), x = as.double(as.vector(x)), 
 					mpu = as.double(mpu), meanx = as.double(meanx), meany = as.double(meany),
@@ -736,7 +691,7 @@ dbmderiv3 = function(pars, arglist)
 					dpdelta = as.double(dpdelta), dpbeta = as.double(dpbeta), dpk = as.double(dpk),
 					dvomega = as.double(dvomega), dvalpha = as.double(dvalpha), 
 					dvdelta = as.double(dvdelta), dvbeta = as.double(dvbeta), dvk = as.double(dvk),
-					idx = as.integer(idx), xidx = as.integer(xidx), T = as.integer(n), 
+					Cost = as.double(Cost), idx = as.integer(idx), xidx = as.integer(xidx), T = as.integer(n), 
 					PACKAGE="dbm"), silent = TRUE)
 	# Check and return
 	if(arglist$derivarg == 1){

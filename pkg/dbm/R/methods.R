@@ -52,6 +52,8 @@ score.dbm = function(object, pars = NULL, analytic = TRUE, ... )
 		arglist$x = coredata(object$model$y[,object$model$x.vars])
 		arglist$pnames = fnames
 		arglist$fnames = NULL
+		arglist$regularization = object$model$regularization
+		if(arglist$idx[7]==1) arglist$Cost = object$model$reg.cost else arglist$Cost = 0
 		arglist$modelnames = fnames
 		arglist$fpars = NULL
 		arglist$fidx = NULL
@@ -76,7 +78,7 @@ score.dbm = function(object, pars = NULL, analytic = TRUE, ... )
 
 deviance.dbm = function(object, null = FALSE, ...)
 {
-	return( ifelse(null, object$fit$null.deviance, 2*likelihood(object) ) )
+	return( ifelse(null, object$fit$null.deviance, -2*likelihood(object) ) )
 }
 
 plot.dbm = function(x, ...)

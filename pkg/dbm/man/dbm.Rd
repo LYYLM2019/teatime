@@ -10,7 +10,8 @@ with a choice of link functions and making use of analytic gradient.
 \usage{
 dbm(y, x.vars = NULL, x.lags = 1, arp = 1, arq = 0, ecm = FALSE, constant = TRUE, 
 link = "gaussian", fixed.pars = NULL, solver = "optim", control = list(), 
-parsearch = TRUE, parsim = 5000, method = "Nelder-Mead", ...)
+parsearch = TRUE, parsim = 5000, method = "Nelder-Mead", regularization = FALSE, 
+reg.cost = 1, ...)
 }
 \arguments{
  \item{y}{
@@ -59,6 +60,12 @@ If parsearch is TRUE, the number of parameter vectors to simulate and evaluate.
 }
   \item{method}{
 The \sQuote{optim} sub-solver.
+}
+\item{regularization}{
+Whether to use L2 regularization.
+}
+\item{reg.cost}{
+The regularization penalty.
 }
   \item{\dots}{
 Additional parameters are passed to the \sQuote{gosolnp} solver.
