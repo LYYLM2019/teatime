@@ -131,9 +131,11 @@ fitted.dbm = function(object, ...)
 	return(ans)
 }
 
-residuals.dbm = function(object, ...)
+residuals.dbm = function(object, type = c("deviance", "pearson"), ...)
 {
-	ans = object$fit$residuals
+	ans = switch(tolower(type[1]),
+			deviance = resdeviance(object),
+			pearson  = respearson(object))
 	ans = xts(ans, index(object$model$y))
 	return(ans)
 }

@@ -25,7 +25,7 @@ dbm object.
 \method{vcov}{dbm}(object, robust = FALSE, ...)
 \method{plot}{dbm}(x, ...)
 \method{fitted}{dbm}(object,...)
-\method{residuals}{dbm}(object,...)
+\method{residuals}{dbm}(object, type = c("deviance", "pearson"), ...)
 \method{coef}{dbm}(object,...)
 \method{deviance}{dbm}(object, null=FALSE,...)
 \method{likelihood}{dbm}(object, ...)
@@ -55,6 +55,9 @@ No. of digits for priting the coefficient matrix.
 \item{pars}{
 [score] An (optional) named vector of coefficients to be used instead
 of the object's esimated parameters.
+}
+\item{type}{
+[residuals] Either \dQuote{deviance} or \dQuote{pearson} (as in glm).
 }
 \item{analytic}{
 [score] Whether to calculate (if pars is not null, else no calculation is 

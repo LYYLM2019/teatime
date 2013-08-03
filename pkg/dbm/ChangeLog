@@ -3,6 +3,7 @@
 	* Added L2 regularization and updated the analytic gradient to take this 
 	into account.
 	* A number of minor fixes to various functions.
+	* Added type argument to residuals with option for deviance or pearson.
 	
 2013-07-01  Alexios Ghalanos <alexios@4dscape.com>
 	* DESCRIPTION (Version): New version is 1.0-0

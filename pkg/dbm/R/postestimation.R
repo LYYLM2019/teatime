@@ -59,7 +59,6 @@
 	fit$LLH = -temp$llh
 	fit$log.likelihoods = temp$lik
 	fit$coef = pars
-	fit$residuals = (arglist$y - fit$mpu)/(fit$mpu*(1-fit$mpu))
 	names(fit$coef) <- arglist$pnames
 	if(is.null(fit$cvar) | flag==1){
 		m = length(pars)
@@ -244,9 +243,24 @@ robustvcv = function(fun, pars, nlag = 0, hess, n, ...)
 	return(list(vcv = vcv, scores = scores, info = info))
 }
 
-
-
-
+# deviance residuals
+resdeviance = function(x)
+{
+	y = as.integer(x$model$y[,1])
+	p = as.numeric(fitted(x))
+	r = rep(0, length(y))
+	r[y==0] = -sqrt(2*abs(log(1-p[y==0])))
+	r[y==1] = sqrt(2*abs(log(p[y==1])))
+	return(r)
+}
+# pearson residuals
+respearson = function(x)
+{
+	y = as.integer(x$model$y[,1])
+	p = as.numeric(fitted(x))
+	r = (y - p)/sqrt(p*(1-p))
+	return(r)
+}
 .boxcoxtransform = function(x, lambda)
 {
 	if(lambda!=0) ret = (x^lambda - 1)/lambda else ret = log(x)

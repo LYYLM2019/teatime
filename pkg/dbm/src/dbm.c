@@ -46,7 +46,7 @@ void c_dbmestimate(double *y, double *x, double *mpu, double *mpuinit, double *o
 	for(i=0;i<*T;i++){
 		// include intercept?
 		if(idx[0]>0){
-			mpu[i] += *omega;
+			mpu[i]+= *omega;
 		}
 		// include arp? (limited to 1-lag)
 		if(idx[2]>0){
@@ -74,11 +74,11 @@ void c_dbmestimate(double *y, double *x, double *mpu, double *mpuinit, double *o
 			}
 		}
 		// '<=' used since we have zero indexing
-		if(idx[1]>0 && i>0){
+		if(idx[1]>0){
 			for(j=0;j<idx[1];j++){
 				if(i>=xidx[j]){
-					ind = (i-xidx[j]) + ( *T * j );
-					mpu[i] += beta[j]*x[ind];
+					ind = (int) (i-xidx[j]) + ( *T * j );
+					mpu[i]+= beta[j] * x[ind];
 				}
 			}
 		}

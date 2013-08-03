@@ -37,10 +37,13 @@ dbm = function(y, x.vars = NULL, x.lags = 1, arp = 1, arq = 0, ecm = FALSE,
 		solver = "optim", control=list(), parsearch = TRUE, parsim = 5000, 
 		method = "Nelder-Mead", regularization = FALSE, reg.cost = 1, ...)
 {
+	call <- match.call()
 	if(!is(y, "xts")) stop("\ny must be an xts object")
 	if(any(is.na(y))){
 		stop("\nNA's found in y. Remove and resubmit.")
 	}
+	#x.vars = colnames(x)
+	
 	modelnames = c(if(constant) "omega" else NULL, if(!is.null(x.vars)) paste("beta[",1:length(x.vars),"]",sep="") else NULL,
 			if(arp>0) paste("alpha[",1:arp,"]",sep="") else NULL, if(arq>0 && !ecm) paste("delta[",1:arq,"]",sep="") else NULL,
 			if(link=="glogistic") "skew[k]" else NULL)
@@ -144,7 +147,7 @@ dbm = function(y, x.vars = NULL, x.lags = 1, arp = 1, arq = 0, ecm = FALSE,
 			if(length(fpars)==length(pars)){
 				model$idx = idx
 				model$xidx = xidx
-				sol = .filter.dbm(pars = fpars, model)
+				sol = .filter.dbm(pars = fpars, model, call = call)
 				return(sol)
 			}
 			pars = pars[-fidx]
@@ -299,7 +302,7 @@ dbm = function(y, x.vars = NULL, x.lags = 1, arp = 1, arq = 0, ecm = FALSE,
 	model$estimation = "maxlik"
 	model$solver = solver
 	if(solver=="optim") model$method = method
-	out = list(model = model, fit = fit)
+	out = list(model = model, fit = fit, call = call)
 	class(out) <- "dbm"
 	return(out)
 }
@@ -724,7 +727,7 @@ dbmderiv3 = function(pars, arglist)
 
 
 # filter data with a fixed set of parameters (despatched from dbm)
-.filter.dbm = function(pars, model)
+.filter.dbm = function(pars, model, call)
 {
 	if(model$constant){
 		omega  =  0
@@ -858,7 +861,7 @@ dbmderiv3 = function(pars, arglist)
 	fit$null.deviance = null.deviance
 	fit$model.epcp = epcp.default(fit$fitted.values, as.numeric(model$y))
 	model$estimation = "filter"
-	out = list(model = model, fit = fit)
+	out = list(model = model, fit = fit, call = call)
 	class(out) <- "dbm"
 	return(out)
 }
