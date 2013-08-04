@@ -167,8 +167,8 @@ summary.dbm = function(object, ...)
 	ans$n.obs = length(fitted(object))
 	ans$model.epcp = object$fit$model.epcp
 	ans$null.epcp = object$fit$null.epcp
-	ans$mfRsq = 1 - (ans$logLik/(ans$null.deviance/2))
-	ans$csRsq = 1 - (ans$logLik/(ans$null.deviance/2))^(2/ans$n.obs)
+	ans$mfRsq = 1 - (ans$logLik/(-ans$null.deviance/2))
+	ans$csRsq = 1 - (ans$logLik/(-ans$null.deviance/2))^(2/ans$n.obs)
 	ans$tjRsq = tjur.rsq(object)
 	class(ans)<-"summary.dbm"
 	return(ans)
