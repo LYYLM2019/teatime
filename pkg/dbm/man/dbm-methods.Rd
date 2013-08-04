@@ -4,14 +4,15 @@
 \alias{fitted.dbm}
 \alias{residuals.dbm}
 \alias{coef.dbm}
-\alias{likelihood.dbm}
+\alias{logLik.dbm}
 \alias{score.dbm}
 \alias{score}
-\alias{likelihood.default}
-\alias{likelihood}
 \alias{BIC.dbm}
 \alias{AIC.dbm}
 \alias{deviance.dbm}
+\alias{model.matrix.dbm}
+\alias{hat.dbm}
+\alias{hatvalues.dbm}
 \alias{summary.dbm}
 \alias{print.dbm}
 \title{
@@ -25,13 +26,15 @@ dbm object.
 \method{vcov}{dbm}(object, robust = FALSE, ...)
 \method{plot}{dbm}(x, ...)
 \method{fitted}{dbm}(object,...)
-\method{residuals}{dbm}(object, type = c("deviance", "pearson"), ...)
+\method{residuals}{dbm}(object, type = c("deviance", "pearson", "std.pearson"), ...)
 \method{coef}{dbm}(object,...)
 \method{deviance}{dbm}(object, null=FALSE,...)
-\method{likelihood}{dbm}(object, ...)
-\method{likelihood}{default}(object, ...)
+\method{logLik}{dbm}(object, ...)
 \method{AIC}{dbm}(object,...)
 \method{BIC}{dbm}(object,...)
+\method{model.matrix}{dbm}(object, ...)
+\method{hat}{dbm}(x, ...)
+\method{hatvalues}{dbm}(model, ...)
 \method{summary}{dbm}(object,...)
 \method{score}{dbm}(object, pars = NULL, analytic = TRUE, ... )
 \method{print}{dbm}(x, digits = max(3L, getOption("digits") - 3L), ...)
@@ -41,6 +44,9 @@ dbm object.
 An object of class dbm.
 }
 \item{object}{
+An object of class dbm.
+}
+\item{model}{
 An object of class dbm.
 }
 \item{robust}{
@@ -70,7 +76,11 @@ numDeriv package).
 }
 \details{
 The methods provided allow for extracting or calculating useful values from
-the estimated object of class \sQuote{dbm}.
+the estimated object of class \sQuote{dbm}.\cr
+The \dQuote{std.pearson} options divides the pearson residuals by the sqrt of 1 
+minus the Pregibon leverage (hatvalues).\cr
+The \code{hat} method returns the hat matrix whose diagonal are the 
+\code{hatvalues}.\cr
 }
 \examples{
 \dontrun{

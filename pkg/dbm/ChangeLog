@@ -3,7 +3,11 @@
 	* Added L2 regularization and updated the analytic gradient to take this 
 	into account.
 	* A number of minor fixes to various functions.
-	* Added type argument to residuals with option for deviance or pearson.
+	* Added type argument to residuals with option for deviance, pearson and
+	standardized pearson.
+	* Added model.matrix, hat and hatvalues (Pregibon  leverage) methods.
+	* renamed likelihood method to logLik in keeping with existing 
+	stats package convention
 	
 2013-07-01  Alexios Ghalanos <alexios@4dscape.com>
 	* DESCRIPTION (Version): New version is 1.0-0

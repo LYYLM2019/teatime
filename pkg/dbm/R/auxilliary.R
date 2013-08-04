@@ -138,6 +138,12 @@ iqrtransform = function(x, type = 7, inverse = FALSE, median.x = FALSE, IQR.x = 
 	return(ans)
 }
 
+.sqrtm = function (x) 
+{
+    tmp = svd(x)
+    sqrtx = tmp$u %*% sqrt(diag(tmp$d)) %*% t(tmp$u)
+    return(sqrtx)
+}
 
 shadeplot = function(signal, series, signal.col = "WhiteSmoke", 
 		series.col = "steelblue", main = "", ylim = c(min(series), max(series)), 

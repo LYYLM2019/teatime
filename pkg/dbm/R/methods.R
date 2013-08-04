@@ -14,14 +14,7 @@
 ##   GNU General Public License for more details.
 ##
 #################################################################################
-likelihood = function(object, ... ) { UseMethod("likelihood") }
-
-likelihood.default <- function(object, ...)
-{ 
-	return( object$fit$LLH )
-}
-
-likelihood.dbm = function(object, ...)
+logLik.dbm = function(object, ...)
 {
 	return( object$fit$LLH )
 }
@@ -78,7 +71,7 @@ score.dbm = function(object, pars = NULL, analytic = TRUE, ... )
 
 deviance.dbm = function(object, null = FALSE, ...)
 {
-	return( ifelse(null, object$fit$null.deviance, -2*likelihood(object) ) )
+	return( ifelse(null, object$fit$null.deviance, -2*logLik(object) ) )
 }
 
 plot.dbm = function(x, ...)
@@ -131,11 +124,16 @@ fitted.dbm = function(object, ...)
 	return(ans)
 }
 
-residuals.dbm = function(object, type = c("deviance", "pearson"), ...)
+residuals.dbm = function(object, type = c("deviance", "pearson", "std.pearson"), ...)
 {
 	ans = switch(tolower(type[1]),
 			deviance = resdeviance(object),
-			pearson  = respearson(object))
+			pearson  = respearson(object),
+			std.pearson = respearson(object))
+	if(tolower(type)=="std.pearson"){
+		L = hatvalues(object)
+		ans = ans/sqrt(1-L)
+	}
 	ans = xts(ans, index(object$model$y))
 	return(ans)
 }
@@ -144,7 +142,7 @@ BIC.dbm = function(object, ...)
 {
 	nObs = NROW(object$model$y)
 	nPars = length(coef(object))
-	LLH = likelihood(object)
+	LLH = logLik(object)
 	ans = (-2*LLH)/nObs + nPars * log(nObs)/nObs
 	return( ans )
 }
@@ -153,7 +151,7 @@ AIC.dbm = function(object, ...)
 {
 	nObs = NROW(object$model$y)
 	nPars = length(coef(object))
-	LLH = likelihood(object)
+	LLH = logLik(object)
 	ans = (-2*LLH)/nObs + 2 * nPars/nObs
 	return( ans )
 }
@@ -163,14 +161,14 @@ summary.dbm = function(object, ...)
 {
 	ans = list()
 	ans$coefficients = object$fit$matcoef
-	ans$likelihood = likelihood(object)
+	ans$logLik = logLik(object)
 	ans$model.deviance = deviance(object)
 	ans$null.deviance=  deviance(object, TRUE)
 	ans$n.obs = length(fitted(object))
 	ans$model.epcp = object$fit$model.epcp
 	ans$null.epcp = object$fit$null.epcp
-	ans$mfRsq = 1 - (ans$likelihood/(ans$null.deviance/2))
-	ans$csRsq = 1 - (ans$likelihood/(ans$null.deviance/2))^(2/ans$n.obs)
+	ans$mfRsq = 1 - (ans$logLik/(ans$null.deviance/2))
+	ans$csRsq = 1 - (ans$logLik/(ans$null.deviance/2))^(2/ans$n.obs)
 	ans$tjRsq = tjur.rsq(object)
 	class(ans)<-"summary.dbm"
 	return(ans)
@@ -183,7 +181,7 @@ print.dbm = function(x, digits = max(3L, getOption("digits") - 3L), ...)
             print.gap = 2, quote = FALSE)
 	cat("\n")
 	cat("\nN.observations:\t\t", y$n.obs)
-	cat("\nLog-Likelihood:\t\t", y$likelihood)
+	cat("\nLog-Likelihood:\t\t", y$logLik)
 	cat("\nNull Deviance:\t\t", y$null.deviance)
 	cat("\nResidual Deviance:\t", y$model.deviance)
 	cat("\nMcFadden pseudo  R^2:", round(y$mfRsq,4))
@@ -218,6 +216,38 @@ epcp.default = function(x, y = NULL)
 	ans = (sum(x[y==1]) + sum(1-x[y==0]))/length(y)
 	return(ans)
 }
+
+
+model.matrix.dbm = function(object, ...)
+{
+	
+	if(object$model$constant){
+		y = object$model$y[,-1]
+		i = xts(rep(1, nrow(y)), index(y))
+		colnames(i)<-"Intercept"
+		ans = cbind(i, y)
+	} else{
+		ans = object$model$y[,-1]
+	}
+	return(ans)
+}
+
+hat.dbm = function(x, ...)
+{
+	p = as.numeric(fitted(x))
+	xp = p * (1-p)
+	W.hat =  diag(xp)
+	X = coredata(model.matrix(x))
+	W.hat.i = .sqrtm(W.hat)
+	H = W.hat.i %*% X %*% solve(t(X) %*% W.hat %*% X) %*% t(X) %*% W.hat.i
+	return(H)
+}
+
+hatvalues.dbm = function(model, ...)
+{
+	return(diag(hat(model)))
+}
+
 ###############################################################################
 # Hosmer-Lemeshow Goodness of Fit (GOF) Test
 # Code adapted from the ResourceSelection package of Solymos et al.
