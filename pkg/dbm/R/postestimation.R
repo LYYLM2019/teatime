@@ -59,6 +59,7 @@
 	fit$LLH = -temp$llh
 	fit$log.likelihoods = temp$lik
 	fit$coef = pars
+	fit$rec.init = temp$init
 	names(fit$coef) <- arglist$pnames
 	if(is.null(fit$cvar) | flag==1){
 		m = length(pars)

@@ -145,6 +145,31 @@ iqrtransform = function(x, type = 7, inverse = FALSE, median.x = FALSE, IQR.x = 
     return(sqrtx)
 }
 
+.embed = function(data, k, by = 1, ascending = FALSE) 
+{
+    if (is.null(dim(data)[1])) 
+        n <- length(data)
+    else n <- dim(data)[1]
+    s <- seq(1, n - k + 1, by)
+    lens <- length(s)
+    cols <- if (ascending) 1:k else k:1
+    return(matrix(data[s + rep(cols, rep(lens, k)) - 1], lens))
+}
+
+.lagx = function(data, n.lag = 1, removeNA = FALSE, pad = NA) 
+{
+    data = as.matrix(data)
+    n = dim(data)[1]
+    d = dim(data)[2]
+    if (dim(data)[2] == 1) 
+        data = matrix(data, ncol = 1)
+    z = apply(data, 2, FUN = function(x) .embed(x, n.lag + 1)[, 
+        				n.lag + 1])
+    if (!removeNA) 
+        z = rbind(matrix(pad, ncol = d, nrow = n.lag), z)
+    return(z)
+}
+
 shadeplot = function(signal, series, signal.col = "WhiteSmoke", 
 		series.col = "steelblue", main = "", ylim = c(min(series), max(series)), 
 		...)

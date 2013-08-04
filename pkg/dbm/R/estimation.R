@@ -43,7 +43,6 @@ dbm = function(y, x.vars = NULL, x.lags = 1, arp = 1, arq = 0, ecm = FALSE,
 		stop("\nNA's found in y. Remove and resubmit.")
 	}
 	#x.vars = colnames(x)
-	
 	modelnames = c(if(constant) "omega" else NULL, if(!is.null(x.vars)) paste("beta[",1:length(x.vars),"]",sep="") else NULL,
 			if(arp>0) paste("alpha[",1:arp,"]",sep="") else NULL, if(arq>0 && !ecm) paste("delta[",1:arq,"]",sep="") else NULL,
 			if(link=="glogistic") "skew[k]" else NULL)
@@ -302,6 +301,8 @@ dbm = function(y, x.vars = NULL, x.lags = 1, arp = 1, arq = 0, ecm = FALSE,
 	model$estimation = "maxlik"
 	model$solver = solver
 	if(solver=="optim") model$method = method
+	if(any(names(fit$coef)=="omega")) nn = 1 else nn = 0
+	fit$df.residual = nrow(y) - length(fit$coef) + nn
 	out = list(model = model, fit = fit, call = call)
 	class(out) <- "dbm"
 	return(out)
@@ -374,7 +375,7 @@ dbmlik = function(pars, arglist)
 	ans = switch(arglist$type,
 			llh = tmp$llh,
 			lik = tmp$lik,
-			ALL = list(llh = tmp$llh, lik = tmp$lik, mpu = tmp$mpu))
+			ALL = list(llh = tmp$llh, lik = tmp$lik, mpu = tmp$mpu, init = rcs))
 	return(ans)
 }
 

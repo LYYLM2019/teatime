@@ -229,6 +229,22 @@ model.matrix.dbm = function(object, ...)
 	} else{
 		ans = object$model$y[,-1]
 	}
+	idx = index(ans)
+	ans = coredata(ans)
+	
+	if(object$model$arp>0){
+		for(i in 1:object$model$arp){
+			ans = cbind(ans, .lagx(object$fit$mpu, n.lag=i, pad = object$fit$rec.init))
+			colnames(ans)[length(colnames(ans))] = paste("pi[t-",i,"]",sep="")
+		}
+	}
+	if(object$model$arq>0 && !object$model$ecm){
+		for(i in 1:object$model$arq){
+			ans = cbind(ans, .lagx(coredata(object$model$y[,1]), n.lag=i, pad = 0))
+			colnames(ans)[length(colnames(ans))] = paste("y[t-",i,"]",sep="")
+		}
+	}
+	ans = xts(ans, idx)
 	return(ans)
 }
 
@@ -245,7 +261,7 @@ hat.dbm = function(x, ...)
 
 hatvalues.dbm = function(model, ...)
 {
-	return(diag(hat(model)))
+	return(diag(hat.dbm(model)))
 }
 
 ###############################################################################

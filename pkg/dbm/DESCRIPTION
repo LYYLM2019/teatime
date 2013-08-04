@@ -9,6 +9,6 @@ Depends: R (>= 3.0.0), Rcpp, methods
 LinkingTo: Rcpp
 Imports: Rsolnp, numDeriv, xts, zoo, chron, nloptr, Epi
 Description: Dynamic Binary Model
-Collate: auxilliary.R estimation.R methods.R postestimation.R prediction.R
+Collate: auxilliary.R estimation.R imports.R methods.R postestimation.R prediction.R
 LazyLoad: yes
 License: GPL-3
