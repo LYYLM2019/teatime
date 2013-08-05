@@ -86,14 +86,17 @@ plot.dbm = function(x, ...)
 	xx<-plot(as.numeric(f), type="l", xaxt = "n", ylab="",xlab="",main="dbm: Fitted vs Actual", ylim=c(-0.01, 1), yaxs = "i")
 	tmp=y[index(f), x$model$yname]
 	tmp = as.numeric(tmp)
-	start = which(diff(tmp)==1)
-	end = which(diff(tmp)==(-1))-1
-	if(length(start)==0 && length(end)>0) start=1
-	if(length(end)<length(start)) end = c(end, length(y))
-	n = length(start)
-	for(i in 1:n){
-		rect(start[i], -0.01, end[i],  1, col="WhiteSmoke",  lwd=5, border = FALSE)
-	}
+	start = which(diff(c(0,signal))==1)
+    end = which(diff(c(0,signal))==(-1))-1
+	if(length(start)==0 && length(end)>0) start=1	
+    if(length(end)<length(start)) end = c(end, length(signal))
+    if(length(end)>length(start)) start = c(1, start)
+    miny = min(series, na.rm=TRUE)
+    maxy = max(series, na.rm=TRUE)
+    n = length(start)
+    for(i in 1:n){
+		rect(start[i], -0.01, end[i],  1.01, col= "WhiteSmoke", border = FALSE)
+    }
 	lines(as.numeric(f))
 	axis(1, at = ep, labels = names(ep), tick = TRUE)
 	box()
@@ -101,7 +104,7 @@ plot.dbm = function(x, ...)
 	y = as.numeric(tmp)
 	f = as.numeric(f)
 	par(mar = c(5, 4, 4, 2) + 0.1)	
-	ROC(test = f, stat = y, plot = "ROC", PV=TRUE, MX=TRUE, AUC = TRUE, main = "ROC Curve")
+	Epi::ROC(test = f, stat = y, plot = "ROC", PV=TRUE, MX=TRUE, AUC = TRUE, main = "ROC Curve")
 	invisible()
 }
 

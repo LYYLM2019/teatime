@@ -177,9 +177,9 @@ dbm = function(y, x.vars = NULL, x.lags = 1, arp = 1, arq = 0, ecm = FALSE,
 	arglist$dbmenv <- dbmenv
 	if(parsearch){
 		arglist$transform = FALSE
-		LB = rep(-25, length(pars))
-		UB = rep( 25, length(pars))
-		if(solver!="optim"){
+		LB = rep(-35, length(pars))
+		UB = rep( 35, length(pars))
+		if(solver!="optim" && method!="L-BFGS-B"){
 			if(idx[3]>0) LB[which(substr(pnames, 1,5)=="alpha")]=-0.99999
 			if(idx[3]>0) UB[which(substr(pnames, 1,5)=="alpha")]= 0.99999
 			if(idx[6]==3) LB[which(substr(pnames, 1,4)=="skew")] = 0.1
@@ -196,7 +196,10 @@ dbm = function(y, x.vars = NULL, x.lags = 1, arp = 1, arq = 0, ecm = FALSE,
 		spars = runif(length(pars))
 	}
 	if(ecm){
-		gr = NULL
+		gr = switch(as.character(idx[6]),
+				"1" = NULL,
+				"2" = dbmderiv1,
+				"3" = NULL)
 	} else{
 		gr = switch(as.character(idx[6]),
 				"1" = dbmderiv2,
@@ -204,23 +207,42 @@ dbm = function(y, x.vars = NULL, x.lags = 1, arp = 1, arq = 0, ecm = FALSE,
 				"3" = dbmderiv3)
 	}
 	if(solver=="optim"){
-		arglist$transform = TRUE
+		if(method!="L-BFGS-B") arglist$transform = TRUE else arglist$transform = FALSE
 		if(is.null(control$maxit)) control$maxit=50000
-		if(idx[6]==1){
-			sol = optim(par = spars, fn = dbmlik, gr = gr, arglist = arglist,
-					control = control, hessian = TRUE, method = method)
-		} else if(idx[6]==2){
-			sol = optim(par = spars, fn = dbmlik, gr = gr, arglist = arglist,
-					control = control, hessian = TRUE, method = method)
+		if(method=="L-BFGS-B"){
+			LB = -35*abs(spars)
+			UB =  35*abs(spars)
+			if(idx[3]>0) LB[which(substr(pnames, 1,5)=="alpha")]=-0.99999
+			if(idx[3]>0) UB[which(substr(pnames, 1,5)=="alpha")]= 0.99999
+			if(idx[6]==3) LB[which(substr(pnames, 1,4)=="skew")] = 0.1
+			if(idx[6]==3) UB[which(substr(pnames, 1,4)=="skew")] = 100
+			if(idx[6]==1){
+				sol = optim(par = spars, fn = dbmlik, gr = gr, arglist = arglist,
+						control = control, hessian = TRUE, method = method, lower  = LB, upper = LB)
+			} else if(idx[6]==2){
+				sol = optim(par = spars, fn = dbmlik, gr = gr, arglist = arglist,
+						control = control, hessian = TRUE, method = method, lower  = LB, upper = LB)
+			} else{
+				sol = optim(par = spars, fn = dbmlik, gr = gr, arglist = arglist,
+						control = control, hessian = TRUE, method = method, lower  = LB, upper = LB)
+			}
 		} else{
-			sol = optim(par = spars, fn = dbmlik, gr = gr, arglist = arglist,
-					control = control, hessian = TRUE, method = method)
+			if(idx[6]==1){
+				sol = optim(par = spars, fn = dbmlik, gr = gr, arglist = arglist,
+						control = control, hessian = TRUE, method = method)
+			} else if(idx[6]==2){
+				sol = optim(par = spars, fn = dbmlik, gr = gr, arglist = arglist,
+						control = control, hessian = TRUE, method = method)
+			} else{
+				sol = optim(par = spars, fn = dbmlik, gr = gr, arglist = arglist,
+						control = control, hessian = TRUE, method = method)
+			}
 		}
 		pars = sol$par
 	} else if(solver == "gosolnp"){
 		arglist$transform = FALSE
-		LB = -25*abs(spars)
-		UB =  25*abs(spars)
+		LB = -35*abs(spars)
+		UB =  35*abs(spars)
 		if(idx[3]>0) LB[which(substr(pnames, 1,5)=="alpha")]=-0.99999
 		if(idx[3]>0) UB[which(substr(pnames, 1,5)=="alpha")]= 0.99999
 		if(idx[6]==3) LB[which(substr(pnames, 1,4)=="skew")] = 0.1
@@ -230,8 +252,8 @@ dbm = function(y, x.vars = NULL, x.lags = 1, arp = 1, arq = 0, ecm = FALSE,
 		pars = sol$pars
 	} else{
 		arglist$transform = FALSE
-		LB = -25*abs(spars)
-		UB = 25*abs(spars)
+		LB = -35*abs(spars)
+		UB = 35*abs(spars)
 		if(idx[3]>0) LB[which(substr(pnames, 1,5)=="alpha")]=-0.99999
 		if(idx[3]>0) UB[which(substr(pnames, 1,5)=="alpha")]= 0.99999
 		if(idx[6]==3) LB[which(substr(pnames, 1,4)=="skew")] = 0.1
@@ -354,6 +376,7 @@ dbmlik = function(pars, arglist)
 	xidx = arglist$xidx
 	# recursion initialization
 	rcs = omega + mean(y)*delta[1]
+	if(idx[5]>0) rcs = rcs + (1-alpha[1])*mean(y)
 	if(idx[2]>0) rcs = rcs + sum(colMeans(x)*beta)
 	if(idx[3]>0) rcs = rcs/(1-alpha[1])
 	# Likelihood Evaluation C

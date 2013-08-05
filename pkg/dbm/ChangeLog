@@ -6,10 +6,13 @@
 	* Added type argument to residuals with option for deviance, pearson and
 	standardized pearson.
 	* Added model.matrix, hat and hatvalues (Pregibon  leverage) methods.
-	* renamed likelihood method to logLik in keeping with existing 
-	stats package convention
+	* Renamed likelihood method to logLik in keeping with existing 
+	stats package convention.
 	* Added marginal effects, plots etc based on erer package functions maBina
 	and maTrend.
+	* Updated analytic derivatives to deal with case when using error correction 
+	model restriction (they were previously turned off for this case).
+	* Fix to plots
 	
 2013-07-01  Alexios Ghalanos <alexios@4dscape.com>
 	* DESCRIPTION (Version): New version is 1.0-0
