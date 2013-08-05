@@ -86,13 +86,13 @@ plot.dbm = function(x, ...)
 	xx<-plot(as.numeric(f), type="l", xaxt = "n", ylab="",xlab="",main="dbm: Fitted vs Actual", ylim=c(-0.01, 1), yaxs = "i")
 	tmp=y[index(f), x$model$yname]
 	tmp = as.numeric(tmp)
-	start = which(diff(c(0,signal))==1)
-    end = which(diff(c(0,signal))==(-1))-1
+	start = which(diff(c(0,tmp))==1)
+    end = which(diff(c(0,tmp))==(-1))-1
 	if(length(start)==0 && length(end)>0) start=1	
-    if(length(end)<length(start)) end = c(end, length(signal))
+    if(length(end)<length(start)) end = c(end, length(tmp))
     if(length(end)>length(start)) start = c(1, start)
-    miny = min(series, na.rm=TRUE)
-    maxy = max(series, na.rm=TRUE)
+    miny = min(f, na.rm=TRUE)
+    maxy = max(f, na.rm=TRUE)
     n = length(start)
     for(i in 1:n){
 		rect(start[i], -0.01, end[i],  1.01, col= "WhiteSmoke", border = FALSE)
