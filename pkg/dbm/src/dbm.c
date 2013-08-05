@@ -318,14 +318,26 @@ void c_dbmderiv2(double *y, double *x, double *mpu,
 			dvomega[i] = xtmp * dpomega[i] - Cost[0] * omega[0];
 		}
 		if(idx[2]>0){
-			if(i>0){
-				dpalpha[i] = mpu[i-1] + alpha[0] * dpalpha[i-1];
-				dvalpha[i] = xtmp * dpalpha[i] - Cost[0] * alpha[0];
-				*dalpha += dvalpha[i];
+			if(idx[4]>0){
+				if(i>0){
+					dpalpha[i] = mpu[i-1] + alpha[0] * dpalpha[i-1] - y[i-1];
+					dvalpha[i] = xtmp * dpalpha[i] - Cost[0] * alpha[0];
+					*dalpha += dvalpha[i];
+				} else{
+					dpalpha[i] = mpuinit + (alpha[0]*mpuinit)/(1-alpha[0]) - (alpha[0]* meany[0])/(1-alpha[0]);
+					dvalpha[i] = xtmp * dpalpha[i] - Cost[0] * alpha[0];
+					*dalpha += dvalpha[i];
+				}
 			} else{
-				dpalpha[i] = mpuinit + (alpha[0]*mpuinit)/(1-alpha[0]);
-				dvalpha[i] = xtmp * dpalpha[i] - Cost[0] * alpha[0];
-				*dalpha += dvalpha[i];
+				if(i>0){
+					dpalpha[i] = mpu[i-1] + alpha[0] * dpalpha[i-1];
+					dvalpha[i] = xtmp * dpalpha[i] - Cost[0] * alpha[0];
+					*dalpha += dvalpha[i];
+				} else{
+					dpalpha[i] = mpuinit + (alpha[0]*mpuinit)/(1-alpha[0]);
+					dvalpha[i] = xtmp * dpalpha[i] - Cost[0] * alpha[0];
+					*dalpha += dvalpha[i];
+				}
 			}
 		}
 		if(idx[4]==0){
@@ -453,14 +465,26 @@ void c_dbmderiv3(double *y, double *x, double *mpu, double *meanx, double *meany
 			dvomega[i] = xtmp * dpomega[i] - Cost[0] * omega[0];
 		}
 		if(idx[2]>0){
-			if(i>0){
-				dpalpha[i] = mpu[i-1] + alpha[0] * dpalpha[i-1];
-				dvalpha[i] = xtmp * dpalpha[i] - Cost[0] * alpha[0];
-				*dalpha += dvalpha[i];
+			if(idx[4]>0){
+				if(i>0){
+					dpalpha[i] = mpu[i-1] + alpha[0] * dpalpha[i-1] - y[i-1];
+					dvalpha[i] = xtmp * dpalpha[i] - Cost[0] * alpha[0];
+					*dalpha += dvalpha[i];
+				} else{
+					dpalpha[i] = mpuinit + (alpha[0]*mpuinit)/(1-alpha[0]) - (alpha[0]* meany[0])/(1-alpha[0]);
+					dvalpha[i] = xtmp * dpalpha[i] - Cost[0] * alpha[0];
+					*dalpha += dvalpha[i];
+				}
 			} else{
-				dpalpha[i] = mpuinit + (alpha[0]*mpuinit)/(1-alpha[0]);
-				dvalpha[i] = xtmp * dpalpha[i] - Cost[0] * alpha[0];
-				*dalpha += dvalpha[i];
+				if(i>0){
+					dpalpha[i] = mpu[i-1] + alpha[0] * dpalpha[i-1];
+					dvalpha[i] = xtmp * dpalpha[i] - Cost[0] * alpha[0];
+					*dalpha += dvalpha[i];
+				} else{
+					dpalpha[i] = mpuinit + (alpha[0]*mpuinit)/(1-alpha[0]);
+					dvalpha[i] = xtmp * dpalpha[i] - Cost[0] * alpha[0];
+					*dalpha += dvalpha[i];
+				}
 			}
 		}
 		if(idx[4]==0){

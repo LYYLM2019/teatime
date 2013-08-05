@@ -1,20 +1,21 @@
 \section{Introduction}
 Binary response models have a very rich history in the statistical research literature with diverse
-applications in many fields where the dependent variable takes on a dichotomous value. Early work on these
-models included the tetrachoric correlation analysis of \cite{Pearson1900} and the standard biometric textbook
-of \cite{Finney1971}, with more recent advances dealing with such issues as full or partial separation
-in \cite{Zorn2005}, small sample bias reduction in \cite{Firth1993} and \cite{Heinze2002} and
-heteroscedasticity (see for instance \cite{Keele2006}). In econometrics, \cite{Amemiya1981} provided an early
-review of applications, but more recent research has focused on direction of change forecast for stock market
-returns and recession forecasting which is also the motivation of this author.\\
-The Dynamic Binary Model (\verb@dbm@) package implements an autoregressive binary regression model described
-in \cite{Kauppi2008} and further discussed and extended in \citeauthor*{Nyberg2011}(\citeyear{Nyberg2010}, \citeyear{Nyberg2010a},
-and \citeyear{Nyberg2011}). \proglang{R} already includes a large number of packages implementing dynamic binary models,
-with basic functionality already available in the \emph{glm} function of the \verb@stats@ package, and more advanced
-variations in \cite{Zeileis2011}(skew-or generalized-logit), \cite{Zeileis2011a} (heteroscedasticy),
-and \cite{Heinze2013} (bias reduction methods), to name but a few. The \verb@dbm@ package uniquely implements the
-autoregressive model of \cite{Kauppi2008} which is believed to provide a much improved fit to typical problems in
-the time series domain.\\
+applications in many fields where the dependent variable takes on a dichotomous value. Early work on 
+these models included the tetrachoric correlation analysis of \cite{Pearson1900} and the standard 
+biometric textbook of \cite{Finney1971}, with more recent advances dealing with such issues as full 
+or partial separation in \cite{Zorn2005}, small sample bias reduction in \cite{Firth1993} and 
+\cite{Heinze2002} and heteroscedasticity (see for instance \cite{Keele2006}). In econometrics, 
+\cite{Amemiya1981} provided an early review of applications, but more recent research has focused 
+on direction of change forecast for stock market returns and recession forecasting which is also 
+the motivation of this author.\\
+The Dynamic Binary Model (\verb@dbm@) package implements an autoregressive binary regression model 
+described in \cite{Kauppi2008} and further discussed and extended in \citeauthor*{Nyberg2011}(\citeyear{Nyberg2010}, \citeyear{Nyberg2010a},
+and \citeyear{Nyberg2011}). \proglang{R} already includes a large number of packages implementing 
+dynamic binary models, with basic functionality already available in the \emph{glm} function of the 
+\verb@stats@ package, and more advanced variations in \cite{Zeileis2011}(skew-or generalized-logit), 
+\cite{Zeileis2011a} (heteroscedasticy), and \cite{Heinze2013} (bias reduction methods), to name but a few. 
+The \verb@dbm@ package uniquely implements the autoregressive model of \cite{Kauppi2008} which is 
+believed to provide a much improved fit to typical problems in the time series domain.\\
 The vignette discusses the model background in Section \ref{sec:background} and its implementation in
 Section \ref{sec:implementation}. An interesting application, and exposition of the package's functionality
 is available on my blog (see below). The appendix derives the analytic gradient expressions used in
@@ -48,8 +49,8 @@ Formally,
 {E_{t - 1}}\left( {{y_t}} \right) = {P_{t - 1}}\left( {y = 1} \right) = \Phi {\text{ }}\left( {{\pi _t}} \right) = {p_t}
 \end{equation}
 The CDF function, also called the link function, can be one of any number of distributions but has typically been either the Gaussian (probit model),
-Logistic (logit model) or some skewed variation (scobit model). In the \verb@dbm@ package, the Generalized Logistic distribution has been chosen as a skewed choice since
-it nests the Logistic. In the model of \cite{Kauppi2008}, the dynamics of $\pi_t$ take on the following form:
+Logistic (logit model) or some skewed variation (scobit model). In the \verb@dbm@ package, the Generalized Logistic distribution has been chosen 
+as a skewed choice since it nests the Logistic. In the model of \cite{Kauppi2008}, the dynamics of $\pi_t$ take on the following form:
 \begin{equation}\label{eq:dbm}
 {\pi _t} = \omega  + \sum\limits_{i = 1}^k {{\beta _i}{x_{i,t - {l_i}}}}  + \sum\limits_{i = 1}^q {{\delta _i}{y_{t - i}}}  + \sum\limits_{i = 1}^p {{\alpha _i}{\pi _{t - i}}}
 \end{equation}
@@ -60,6 +61,12 @@ The log-likelihood function (at time $t$) in the maximization, given the vector 
 l\left( \theta  \right) = \sum\limits_{t = 1}^T {\left[ {{y_t}\log \Phi \left( {{\pi _t}\left( \theta  \right)} \right) + \left( {1 - {y_t}} \right)\log \left( {1 - \Phi \left( {{\pi _t}\left( \theta  \right)} \right)} \right)} \right]}
 \end{equation}
 conditional on initial values for the recursion. Appendix \ref{sec:Appendix} contains the details of the gradient for each of the 3 link functions used in the \verb@dbm@ package and the recursion initialization method.\\
+\subsection{Regularization}
+Regularization, originally proposed by \cite{Tikhonov1974}, enables to avoid over-fitting in systems with many parameters or generally ill posed problems. While there are a number of ways to do this, regularization in the \@verb@dbm package is based on the $L_2$ norm which is rotationally invariant (as compared to the $L_1$ norm). The likelihood can be represented as:
+\begin{equation}
+l\left( \theta  \right) = \sum\limits_{t = 1}^T {\left[ {{y_t}\log \Phi \left( {{\pi _t}\left( \theta  \right)} \right) + \left( {1 - {y_t}} \right)\log \left( {1 - \Phi \left( {{\pi _t}\left( \theta  \right)} \right)} \right)} \right]}  - \frac{C}{2}\sum\limits_{j = 1}^m {\theta _j^2}
+\end{equation}
+where it is clear how higher values of the $m$ parameters are penalized, with the cost $C$ determined by the user. In a future, cross validation may be implemented internally to enable the determination of this cost function.
 \subsection{Forecasting}
 Unlike other nonlinear models, the binary nature of the model allows explicit multi-period iterated forecasts by enumeration of all the possible binary paths. Following from the Appendix of \cite{Kauppi2008}, and adjusting the notation to use forward times, the h-period ahead forecast can be represented as follows:
 \begin{equation}
@@ -118,11 +125,53 @@ the \verb@dbm@ package returns enough information in the estimated object (inclu
 number of important issues to keep in mind when estimating a model, including heteroscedasticity, partial or complete non-separation, and
 multi-collinearity, all of which are covered in standard textbooks and numerous articles. Particular care should also be taken to ensure that
 the explanatory variables are stationary.
+\subsection{Methods}
+The main methods for working with the returned estimation object after calling the \emph{dbm} function are summarized in Table \ref{table:methods}.
+{\tiny
+\ctable[
+pos = h,
+cap     = {\textbf{dbm} class methods.},
+caption = {\textbf{dbm} class methods.},
+label   = {table:methods},
+center
+]
+{lcccccccc}
+{
+}{
+\FL
+\begin{tabular*}{1\textwidth}{@{\extracolsep{\fill}}lll}
+    \textbf{Method} & \textbf{Args} & \textbf{Description} \\
+    \hline
+    logLik & (object, ...) & Returns the log likelihood at the maximized optimal \\
+    coef  & (object, ...) & Returns the coefficient values (excluding any fixed parameters) \\
+    vcov  & (object, robust=FALSE, ...) & Returns the variance covariance matrix of the parameters \\
+    score & (object, pars=NULL, analytic=TRUE, ...) & Returns the score matrix (or calculates one using a new set of pars) \\
+    deviance & (object, null = FALSE, ...) & Extracts the deviance (or optionally the null deviance) \\
+    fitted & (object, ...) & Returns the estimated probability \\
+    residuals & (object, type, ...) & Returns the residuals (with option for type of residuals) \\
+    BIC   & (object, ...) & Returns the Bayesian Information Criterion \\
+    AIC   & (object, ...) & Returns the Akaike Information Criterion \\
+    summary & (object, ...) & Returns a summary of the estimated model \\
+    print & (x, digits, ...) & Prints the estimated model summary \\
+    model.matrix & (object, ...) & Returns the model matrix (including autoregressive data) \\
+    hat   & (x, ...) & Returns the hat matrix \\
+    hatvalues & (model, ...) & Returns the Pregibon leverage \\
+    plot  & (x, ...) & Plots of the estimated object \\
+    predict & (object, newdata = NULL, n.ahead=1, ...) & Prediction (including n.ahead iterated) \\
+    mfx   & (model, x.mean = TRUE, rev.dum = TRUE, ...) & Returns marginal effects \\
+\end{tabular*}
+\LL
+}}
+
+
 \section{Appendix: Analytic Derivatives}\label{sec:Appendix}
 The appendix provides a dry exposition of the analytic expressions for the derivatives used in the numerical
 optimization routine for the 3 link functions. The subscripts for the parameter lag orders and explanatory
 variables have been suppressed for ease and compactness of notation, and denote a lag-1 in all variables with
-one explanatory variable, but the results easily generalize to higher lags and k explanatory variables.
+one explanatory variable, but the results easily generalize to higher lags and k explanatory variables. 
+The gradient formulae shown are for the basic model and do not include the \textbf{ecm} case nor the case of 
+regularization (which are however implemented internally in the package since ver 1.0-1), and in any case require 
+only simple modification.
 \subsection{Recursion Initialization}
 The recursion is initialized by setting:
 \begin{equation}\label{eq:rcs}

@@ -12,7 +12,7 @@
 	and maTrend.
 	* Updated analytic derivatives to deal with case when using error correction 
 	model restriction (they were previously turned off for this case) for the 
-	logistic case...rest will follow soon.
+	logistic case.
 	* Fix to plots
 	
 2013-07-01  Alexios Ghalanos <alexios@4dscape.com>

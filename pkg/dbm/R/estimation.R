@@ -195,17 +195,10 @@ dbm = function(y, x.vars = NULL, x.lags = 1, arp = 1, arq = 0, ecm = FALSE,
 	} else{
 		spars = runif(length(pars))
 	}
-	if(ecm){
-		gr = switch(as.character(idx[6]),
-				"1" = NULL,
-				"2" = dbmderiv1,
-				"3" = NULL)
-	} else{
-		gr = switch(as.character(idx[6]),
-				"1" = dbmderiv2,
-				"2" = dbmderiv1,
-				"3" = dbmderiv3)
-	}
+	gr = switch(as.character(idx[6]),
+			"1" = dbmderiv2,
+			"2" = dbmderiv1,
+			"3" = dbmderiv3)
 	if(solver=="optim"){
 		if(method!="L-BFGS-B") arglist$transform = TRUE else arglist$transform = FALSE
 		if(is.null(control$maxit)) control$maxit=50000
