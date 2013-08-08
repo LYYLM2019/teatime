@@ -9,6 +9,7 @@ importFrom(parallel, makeForkCluster, makePSOCKcluster, stopCluster, clusterEval
 importFrom(spd, spdfit, rspd)
 importFrom(ks, kde, rkde, hpi)
 importFrom(nloptr, nloptr)
+importFrom(SkewHyperbolic, qskewhyp, pskewhyp)
 exportClasses("rGARCH")
 exportClasses("GARCHspec", "uGARCHspec")
 exportClasses("GARCHfit", "uGARCHfit")

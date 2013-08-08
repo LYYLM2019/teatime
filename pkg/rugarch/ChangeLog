@@ -5,6 +5,8 @@
 	setup). Fix also to quantile method for roll (resulted in error when called).
 	* correction to calculation of hessian after previous version removal of Rcpp
 	code introduced an old bug.
+	* Added SkewHyperbolic import for the use of the quantile and distribution 
+	functions in R.
 	
 2013-07-07  Alexios Ghalanos <alexios@4dscape.com>
 	* DESCRIPTION (Version): New version is 1.2-7.
