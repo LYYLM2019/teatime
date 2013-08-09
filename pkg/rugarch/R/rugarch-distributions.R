@@ -144,7 +144,7 @@ qsghst = function(p, mu=0, sigma=1, skew=1, shape=8){
 	beta = param[3]/sigma
 	nu = param[4]
 	ans = SkewHyperbolic::qskewhyp(p, mu = mux, delta = delta, beta = beta, 
-			nu = nu, lower.tail = lower.tail, method = c("spline","integrate")[2])
+			nu = nu, lower.tail = lower.tail, method = c("spline","integrate")[1])
 	return(ans)
 }
 

@@ -797,6 +797,9 @@ by substituting into the first moment formula $\delta$ so that it has zero mean:
 Therefore, we model the GH Skew-Student using the location-scale invariant parametrization $(\bar \beta, \nu)$
 and then translate the parameters into the usual GH distribution's $(\alpha, \beta, \delta, \mu)$, setting
 $\alpha = abs(\beta)+1e-12$.
+As of version 1.2-8, the quantile function (via \textbf{qdist}) is calculated using
+the SkewHyperbolic package of \cite{Scott} using the spline method (for speed), as
+is the distribution function (via \textbf{pdist}).
 \subsubsection{Johnson's Reparametrized SU Distribution}\label{jsu}
 The reparameterized Johnson SU distribution, discussed in \cite{Rigby2005}, is a
 four parameter distribution denoted by $JSU\left(\mu,\sigma,\nu,\tau\right)$,
