@@ -20,10 +20,8 @@
 		control, LB, UB, cluster = NULL, arglist)
 {
 	ifn = function(pars, arglist){
-		(sum(pars[arglist$idx["alpha",1]:arglist$idx["alpha",2],1]) + sum(pars[arglist$idx["beta",1]:arglist$idx["beta",2],1]))
+		(sum(pars[arglist$model$pos.matrix["alpha",1]:arglist$model$pos.matrix["alpha",2]]) + sum(pars[arglist$model$pos.matrix["beta",1]:arglist$model$pos.matrix["beta",2]]))
 	}
-	
-	
 	if(arglist$fit.control$n.sim>0){
 		if(solver == "msoptim" | solver == "msucminf" | solver == "msnlminb" | solver == "mssolnp"){
 			nm = names(pars)
