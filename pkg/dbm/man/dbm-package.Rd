@@ -13,7 +13,7 @@ and provides a set of methods for working with the estimated object.
 Package: \tab dbm\cr
 Type: \tab Package\cr
 Version: \tab 1.0-1\cr
-Date: \tab 2013-08-02\cr
+Date: \tab 2013-08-15\cr
 License: \tab GPL\cr
 LazyLoad: \tab yes\cr
 Imports: \tab Rsolnp, numDeriv, xts, zoo, chron, nloptr, Epi}
