@@ -160,7 +160,6 @@ ghstFit = function(x, control){
 			silent = TRUE)
 	# Add Names to $par
 	names(fit$par) = c("mu", "sigma", "skew", "shape")
-	
 	# Return Value:
 	return( fit )
 
