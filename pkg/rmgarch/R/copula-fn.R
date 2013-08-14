@@ -85,6 +85,7 @@
 }
 
 # about 3 times faster than "cor" function
+# NO LONGER USED...replaced by cor.fk of pcaPP package
 .Kendall = function(data) 
 {
 	n <- dim(data)[1]

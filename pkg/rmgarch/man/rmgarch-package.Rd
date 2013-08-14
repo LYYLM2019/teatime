@@ -19,8 +19,8 @@ the correlation.\cr
 \tabular{ll}{
 Package: \tab rmgarch\cr
 Type: \tab Package\cr
-Version: \tab 1.2-2\cr
-Date: \tab 2013-05-26\cr
+Version: \tab 1.2-3\cr
+Date: \tab 2013-08-30\cr
 License: \tab GPL\cr
 LazyLoad: \tab yes\cr
 Depends: R (>= 3.0.0), methods, Rcpp, RcppArmadillo, rugarch\cr
@@ -45,7 +45,7 @@ multivariate GARCH models are documented in the class of the returned objects.\c
  author       = {Alexios Ghalanos},
  title        = {{rmgarch}: Multivariate GARCH models.},
  year         = {2013},
- note 	      = {R package version 1.2-2.}}}
+ note 	      = {R package version 1.2-3.}}}
 }
 \section{License}{
   The releases of this package is licensed under GPL version 3.

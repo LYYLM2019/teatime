@@ -1,3 +1,8 @@
+2013-08-30 Alexios Ghalanos <alexios@4dscape.com>
+	* DESCRIPTION (Version): New version is 1.2-3.
+	* replaced estimation of Kendall's tau with cor.fk function of pcaPP
+	package which is very fast.
+
 2013-05-26 Alexios Ghalanos <alexios@4dscape.com>
 	* DESCRIPTION (Version): New version is 1.2-2.
 	* Fix to cgarchsim in presence of variance targeting in the univariate

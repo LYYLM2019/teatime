@@ -788,7 +788,7 @@ copula.studentLLH1 = function(pars, arglist)
 	if(modelinc[3]>0){
 		Rbar = .Pconstruct(ipars[idx["C", 1]:idx["C", 2],1])
 	} else{
-		Rtau = .Kendall(Z)
+		Rtau = cor.fk(Z)
 		Rbar = sin(pi * Rtau/2)
 	}
 	diag(Rbar) = 1
@@ -887,7 +887,7 @@ copula.studentLLH2 = function(pars, arglist)
 	if(modelinc[3]>0){
 		Rbar = .Pconstruct(ipars[idx["C", 1]:idx["C", 2],1])
 	} else{
-		Rtau = .Kendall(Z)
+		Rtau = cor.fk(Z)
 		Rbar = sin(pi * Rtau/2)
 	}
 	diag(Rbar) = 1
@@ -977,7 +977,7 @@ copula.studentLLH3 = function(arglist)
 	if(modelinc[3]>0){
 		Rbar = .Pconstruct(ipars[idx["C", 1]:idx["C", 2],1])
 	} else{
-		Rtau = .Kendall(Z[1:dcc.old, , drop = FALSE])
+		Rtau = cor.fk(Z[1:dcc.old, , drop = FALSE])
 		Rbar = sin(pi * Rtau/2)
 	}
 	diag(Rbar) = 1
