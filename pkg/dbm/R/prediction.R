@@ -17,8 +17,6 @@
 # iterated forecast routine
 # expand.grid(c(1,0),c(1,0),c(1,0))
 # eval(parse(text=paste(c("expand.grid(",rep("c(1,0),",k-1),"c(1,0))"),sep=" ", collapse="")))
-
-
 # idx [omega, x.lags, length(x.vars), arp, arq, use_ecm, link]
 
 predict.dbm = function(object, newdata = NULL, n.ahead=1, ...)
