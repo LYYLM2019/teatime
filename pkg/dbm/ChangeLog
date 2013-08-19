@@ -14,6 +14,7 @@
 	model restriction (they were previously turned off for this case) for the 
 	logistic case.
 	* Fix to plots
+	* Fix to prediction in the presence of fixed parameters (resulted in error)
 	
 2013-07-01  Alexios Ghalanos <alexios@4dscape.com>
 	* DESCRIPTION (Version): New version is 1.0-0

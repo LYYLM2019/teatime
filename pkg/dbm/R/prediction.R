@@ -25,7 +25,7 @@ predict.dbm = function(object, newdata = NULL, n.ahead=1, ...)
 	idx = object$model$idx
 	xidx = object$model$xidx
 	if(n.ahead>15) stop("\nn.ahead>15 is likely to lead to memory problems...aborting.")
-	pars = coef(object)
+	pars = object$fit$matcoef[,1]
 	if(idx[1]>0) omega = pars["omega"] else omega = 0
 	if(idx[3]>0){
 		alpha = pars[paste("alpha[",1:idx[3], "]",sep="")]
