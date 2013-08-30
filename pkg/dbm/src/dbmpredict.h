@@ -17,8 +17,8 @@
 #ifndef _dbmpredict_H
 #define _dbmpredict_H
 #include <R.h>
-# include <math.h>
-# include <Rmath.h>
+#include <math.h>
+#include <Rmath.h>
 #include <Rcpp.h>
 RcppExport SEXP dbmpk1(SEXP , SEXP , SEXP , SEXP , SEXP , SEXP , SEXP , SEXP , SEXP , SEXP , SEXP );
 RcppExport SEXP dbmpk2(SEXP , SEXP , SEXP , SEXP , SEXP , SEXP , SEXP , SEXP , SEXP , SEXP , SEXP );
