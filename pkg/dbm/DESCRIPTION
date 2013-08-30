@@ -5,7 +5,7 @@ Version: 1.0-1
 Date: 2013-08-16
 Author: Alexios Ghalanos <alexios@4dscape.com>
 Maintainer: Alexios Ghalanos <alexios@4dscape.com>
-Depends: R (>= 3.0.0), Rcpp, methods
+Depends: methods
 LinkingTo: Rcpp
 Imports: Rsolnp, numDeriv, xts, zoo, chron, nloptr, Epi
 Description: Dynamic Binary Model
