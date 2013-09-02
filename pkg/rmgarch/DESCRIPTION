@@ -5,8 +5,8 @@ Version: 1.2-2
 Date: 2013-05-26
 Author: Alexios Ghalanos <alexios@4dscape.com>
 Maintainer: Alexios Ghalanos <alexios@4dscape.com>
-Depends: R (>= 3.0.0), methods, Rcpp, RcppArmadillo, rugarch (>= 1.2.5)
 LinkingTo: Rcpp, RcppArmadillo
+Depends: methods, rugarch
 Imports: Rsolnp, MASS, parallel, Matrix, zoo, xts, Bessel, ff, fftw, shape, pcaPP, spd
 Description: Feasible multivariate GARCH models including DCC, GO-GARCH and Copula-GARCH.
 Collate: rmgarch-var.R rmgarch-functions.R rmgarch-classes.R rmgarch-ica.R rmgarch-series.R rmgarch-mmean.R gogarch-classes.R gogarch-distributions.R gogarch-main.R gogarch-methods.R rdcc-classes.R rdcc-main.R rdcc-likelihoods.R rdcc-plots.R fdcc-likelihoods.R fdcc-main.R rdcc-methods.R rdcc-mdistributions.R rdcc-postestimation.R rdcc-solver.R copula-classes.R copula-distributions.R copula-likelihoods.R copula-solver.R copula-fn.R copula-transformations.R copula-main.R copula-postestimation.R copula-methods.R rmgarch-tests.R rmgarch-scenario.R zzz.R

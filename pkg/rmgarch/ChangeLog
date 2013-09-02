@@ -1,8 +1,13 @@
-2013-08-30 Alexios Ghalanos <alexios@4dscape.com>
+2013-09-02 Alexios Ghalanos <alexios@4dscape.com>
 	* DESCRIPTION (Version): New version is 1.2-3.
 	* replaced estimation of Kendall's tau with cor.fk function of pcaPP
 	package which is very fast (affects static mvt copula).
-
+	* Added some pro-active garbage collection in the simulation code since
+	memory usage was building up without being released (fragmentation). Also 
+	replaced lapply with normal loop for better memory management.
+	* Fix to cgarchspec and dccspec in the presence of external regressors (had 
+	previously saved the wrong dimension).
+	
 2013-05-26 Alexios Ghalanos <alexios@4dscape.com>
 	* DESCRIPTION (Version): New version is 1.2-2.
 	* Fix to cgarchsim in presence of variance targeting in the univariate

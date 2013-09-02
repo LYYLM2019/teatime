@@ -137,7 +137,7 @@ cgarchsim = function(fit, n.sim = 1000, n.start = 0, m.sim = 1,
 		startMethod = c("unconditional", "sample"), presigma = NULL, 
 		preresiduals = NULL, prereturns = NULL, preR = NULL, preQ = NULL,
 		preZ = NULL, rseed = NULL, mexsimdata = NULL, vexsimdata = NULL, 
-		cluster = NULL, ...)
+		cluster = NULL, only.density= FALSE, ...)
 {
 	UseMethod("cgarchsim")
 }

@@ -146,7 +146,7 @@
 		if(!is.null(VAR.opt$external.regressors)){
 			if(!is.matrix(VAR.opt$external.regressors)) 
 				stop("\nexternal.regressors must be a matrix.")
-			modelinc[2] = dim(VAR.opt$external.regressors)[1]
+			modelinc[2] = dim(VAR.opt$external.regressors)[2]
 			modeldata$mexdata = VAR.opt$external.regressors
 		} else{
 			modeldata$mexdata = NULL
@@ -777,7 +777,7 @@
 	mfit$timer = Sys.time() - tic
 	# Add the spd fit as this is needed for simulation
 	model$sfit = sfit
-	
+	rm(mgarchenv)
 	ans = new("cGARCHfit",
 			mfit = mfit,
 			model = model)
@@ -1491,11 +1491,12 @@
 	return(ans)
 }
 
+# allow returning only the scenario (return) matrix
 .cgarchsim = function(fit, n.sim = 1000, n.start = 0, m.sim = 1, 
 		startMethod = c("unconditional", "sample"), presigma = NULL, 
 		preresiduals = NULL, prereturns = NULL, preR = NULL, preQ = NULL, 
 		preZ = NULL, rseed = NULL, mexsimdata = NULL, vexsimdata = NULL, 
-		cluster = NULL, ...)
+		cluster = NULL, only.density = FALSE, ...)
 {
 	timecopula = fit@model$modeldesc$timecopula
 	if(timecopula){
@@ -1503,12 +1504,13 @@
 				startMethod = startMethod[1], presigma = presigma, preresiduals = preresiduals, 
 				prereturns = prereturns, preR = preR, preQ = preQ, preZ = preZ, 
 				rseed = rseed, mexsimdata = mexsimdata, vexsimdata = vexsimdata, 
-				cluster = cluster)
+				cluster = cluster, only.density = only.density)
 	} else{
 		ans = .cgarchsim1(fit = fit, n.sim = n.sim, n.start = n.start, m.sim = m.sim, 
 				startMethod = startMethod[1], presigma = presigma, preresiduals = preresiduals, 
 				prereturns = prereturns, preR = preR, rseed = rseed, 
-				mexsimdata = mexsimdata, vexsimdata = vexsimdata, cluster = cluster)
+				mexsimdata = mexsimdata, vexsimdata = vexsimdata, cluster = cluster, 
+				only.density = only.density)
 	}
 	return(ans)
 }
@@ -1516,7 +1518,7 @@
 .cgarchsim1 = function(fit, n.sim = 1000, n.start = 0, m.sim = 1, 
 		startMethod = c("unconditional", "sample"), preresiduals = NULL, 
 		presigma = NULL, prereturns = NULL, preR = NULL, rseed = NULL, 
-		mexsimdata = NULL, vexsimdata = NULL, cluster = NULL, ...)
+		mexsimdata = NULL, vexsimdata = NULL, cluster = NULL, only.density = FALSE, ...)
 {
 	# first generate the copula random uniform numbers (static copula)
 	# ures --> transform --> zres
@@ -1638,7 +1640,7 @@
 	
 	if( !is.null(cluster) ){
 		tailres = fit@mfit$tailuresids
-		parallel::clusterEvalQ(cluster, library(rugarch))
+		parallel::clusterEvalQ(cluster, library('rugarch'))
 		parallel::clusterExport(cluster, c("mspec", "n.sim", "n.start", "m.sim", 
 						"startMethod", "zres", "presigma", "tailres", 
 						"preresiduals", "prereturns", "model", 
@@ -1676,17 +1678,19 @@
 			for(i in 1:m.sim) simX[[i]] = matrix(tail(matrix(simxX[,,i], ncol = m), n.sim), nrow = n.sim)
 		}
 	} else{
-		simlist = lapply(as.list(1:m), FUN = function(i){
-					maxx = mspec@spec[[i]]@model$maxOrder;
-					htmp = ugarchpath(mspec@spec[[i]], n.sim = n.sim + n.start, n.start = 0, m.sim = m.sim,
-							custom.dist = list(name = "sample", distfit = matrix(zres[,i,1:m.sim], ncol = m.sim)),
-							presigma = tail(presigma[,i], maxx), 
-							preresiduals = if( is.null(preresiduals) ) tail(fit@mfit$tailuresids[,i], maxx) else tail(preresiduals[,i], maxx), 
-							prereturns = if(model$modelinc[1]==0) tail(prereturns[,i], maxx) else NA,
-							mexsimdata = if(model$modelinc[1]==0) mexsimdata[[i]] else NULL, vexsimdata = vexsimdata[[i]] )
-					h = matrix(tail(htmp@path$sigmaSim^2, n.sim), nrow = n.sim)
-					x = matrix(htmp@path$seriesSim,  nrow = n.sim + n.start)
-					return(list(h = h, x = x))})
+		simlist = vector(mode="list", length=m)
+		for(i in 1:m){
+			maxx = mspec@spec[[i]]@model$maxOrder
+			htmp = ugarchpath(mspec@spec[[i]], n.sim = n.sim + n.start, n.start = 0, m.sim = m.sim,
+					custom.dist = list(name = "sample", distfit = matrix(zres[,i,1:m.sim], ncol = m.sim)),
+					presigma = tail(presigma[,i], maxx), 
+					preresiduals = if( is.null(preresiduals) ) tail(fit@mfit$tailuresids[,i], maxx) else tail(preresiduals[,i], maxx), 
+					prereturns = if(model$modelinc[1]==0) tail(prereturns[,i], maxx) else NA,
+					mexsimdata = if(model$modelinc[1]==0) mexsimdata[[i]] else NULL, vexsimdata = vexsimdata[[i]] )
+			h = matrix(tail(htmp@path$sigmaSim^2, n.sim), nrow = n.sim)
+			x = matrix(htmp@path$seriesSim,  nrow = n.sim + n.start)
+			simlist[[i]] = list(h = h, x = x)
+		}
 		H = array(NA, dim = c(n.sim, m, m.sim))
 		tmpH = array(NA, dim = c(m, m, n.sim))
 		for(i in 1:n.sim) H[i,,] = t(sapply(simlist, FUN = function(x) as.numeric(x$h[i,])))
@@ -1721,17 +1725,41 @@
 	}
 	
 	msim = list()
-	msim$simH = simH
-	msim$simR = simR
-	msim$simQ = simQ
-	msim$simX = simX
-	msim$simRes = simRes
-	msim$simZ = zres
-	msim$rseed = rseed
-	model$n.sim = n.sim
-	model$m.sim = m.sim
-	model$n.start = n.start
-	model$startMethod = startMethod[1]
+	if(only.density){
+		msim$simX = simX
+		msim$rseed = rseed
+		model$n.sim = n.sim
+		model$m.sim = m.sim
+		model$n.start = n.start
+		model$startMethod = startMethod[1]
+	} else{
+		msim$simH = simH
+		msim$simR = simR
+		msim$simQ = simQ
+		msim$simX = simX
+		msim$simRes = simRes
+		msim$simZ = zres
+		msim$rseed = rseed
+		model$n.sim = n.sim
+		model$m.sim = m.sim
+		model$n.start = n.start
+		model$startMethod = startMethod[1]
+	}
+	model$only.density = only.density
+	
+	# need to run gc and rm since 'memory accumulates here'
+	if(exists("simX")) rm(simX)
+	if(exists("simRes")) rm(simRes)
+	if(exists("simH")) rm(simH)
+	if(exists("H")) rm(H)
+	if(exists("simlist")) rm(simlist)
+	if(exists("tmpH")) rm(tmpH)
+	if(exists("mtmp")) rm(mtmp)
+	if(exists("simxX")) rm(simxX)
+	if(exists("zres")) rm(zres)
+	if(exists("ures")) rm(ures)
+	
+	gc(verbose = FALSE)
 	
 	ans = new("cGARCHsim",
 			msim = msim,
@@ -1744,7 +1772,7 @@
 .cgarchsim2 = function(fit, n.sim = 1000, n.start = 0, m.sim = 1, 
 		startMethod = c("unconditional", "sample"), presigma = NULL, preresiduals = NULL, 
 		prereturns = NULL, preR = NULL, preQ = NULL, preZ = NULL, rseed = NULL, 
-		mexsimdata = NULL, vexsimdata = NULL, cluster = NULL, ...)
+		mexsimdata = NULL, vexsimdata = NULL, cluster = NULL, only.density = FALSE, ...)
 {
 	# first generate the copula random uniform numbers (static copula)
 	# ures --> transform --> zres
@@ -1866,7 +1894,7 @@
 			minc = umodel$modelinc
 			mpars = model$mpars
 			sxres  = fit@mfit$stdresid
-			parallel::clusterEvalQ(cluster, require(rmgarch))
+			parallel::clusterEvalQ(cluster, require('rmgarch'))
 			if(transformation == "spd"){
 				parallel::clusterExport(cluster, c("ures", "mpars", "minc", 
 								"m", "sxres", "ssfit", "transformation"), 
@@ -1900,7 +1928,7 @@
 	
 	if( !is.null(cluster) ){
 			tailres = fit@mfit$tailuresids
-			parallel::clusterEvalQ(cluster, require(rugarch))
+			parallel::clusterEvalQ(cluster, require('rugarch'))
 			parallel::clusterExport(cluster, c("mspec", "n.sim", "n.start", "m.sim", 
 							"startMethod", "zres", "presigma", "tailres",
 							"preresiduals", "prereturns", "model", "mexsimdata", 
@@ -1918,14 +1946,16 @@
 						x = matrix(htmp@path$seriesSim,  nrow = n.sim + n.start)
 						return(list(h = h, x = x))
 					})
-			H = array(NA, dim = c(n.sim, m, m.sim))
-			tmpH = array(NA, dim = c(m, m, n.sim))
-			for(i in 1:n.sim) H[i,,] = t(sapply(simlist, FUN = function(x) as.numeric(x$h[i,])))
-			for(i in 1:m.sim){
-				for(j in 1:n.sim){
-					tmpH[ , , j] = sqrt(diag( H[j, , i]) ) %*% simR[[i]][,,j] %*% sqrt(diag( H[j, , i] ) )
+			if(!only.density){	
+				H = array(NA, dim = c(n.sim, m, m.sim))
+				tmpH = array(NA, dim = c(m, m, n.sim))
+				for(i in 1:n.sim) H[i,,] = t(sapply(simlist, FUN = function(x) as.numeric(x$h[i,])))
+				for(i in 1:m.sim){
+					for(j in 1:n.sim){
+						tmpH[ , , j] = sqrt(diag( H[j, , i]) ) %*% simR[[i]][,,j] %*% sqrt(diag( H[j, , i] ) )
+					}
+					simH[[i]] = tmpH
 				}
-				simH[[i]] = tmpH
 			}
 			if(model$modelinc[1]>0){
 				simxX = array(NA, dim = c(n.sim+n.start, m, m.sim))
@@ -1941,25 +1971,29 @@
 	} else{
 		simR = ures$simR
 		#simQ = lapply(mtmp, FUN = function(x) if(is.matrix(x$Q)) array(x$Q, dim = c(m, m, n.sim)) else last(x$Q, n.sim))
-		simlist = lapply(as.list(1:m), FUN = function(i){
-					maxx = mspec@spec[[i]]@model$maxOrder;
-					htmp = ugarchpath(mspec@spec[[i]], n.sim = n.sim + n.start, n.start = 0, m.sim = m.sim,
-							custom.dist = list(name = "sample", distfit = matrix(zres[,i,1:m.sim], ncol = m.sim)),
-							presigma = tail(presigma[,i], maxx), 
-							preresiduals = if( is.null(preresiduals) ) tail(fit@mfit$tailuresids[,i], maxx) else tail(preresiduals[,i], maxx), 
-							prereturns = if(model$modelinc[1]==0) tail(prereturns[,i], maxx) else NA,
-							mexsimdata = if(model$modelinc[1]==0) mexsimdata[[i]] else NULL, vexsimdata = vexsimdata[[i]] )
-					h = matrix(tail(htmp@path$sigmaSim^2, n.sim), nrow = n.sim)
-					x = matrix(htmp@path$seriesSim,  nrow = n.sim + n.start)
-					return(list(h = h, x = x))})
-		H = array(NA, dim = c(n.sim, m, m.sim))
-		tmpH = array(NA, dim = c(m, m, n.sim))
-		for(i in 1:n.sim) H[i,,] = t(sapply(simlist, FUN = function(x) as.numeric(x$h[i,])))
-		for(i in 1:m.sim){
-			for(j in 1:n.sim){
-				tmpH[ , , j] = sqrt(diag( H[j, , i]) ) %*% simR[[i]][,,j] %*% sqrt(diag( H[j, , i] ) )
+		simlist = vector(mode="list", length=m)
+		for(i in 1:m){		
+			maxx = mspec@spec[[i]]@model$maxOrder
+			htmp = ugarchpath(mspec@spec[[i]], n.sim = n.sim + n.start, n.start = 0, m.sim = m.sim,
+					custom.dist = list(name = "sample", distfit = matrix(zres[,i,1:m.sim], ncol = m.sim)),
+					presigma = tail(presigma[,i], maxx), 
+					preresiduals = if( is.null(preresiduals) ) tail(fit@mfit$tailuresids[,i], maxx) else tail(preresiduals[,i], maxx), 
+					prereturns = if(model$modelinc[1]==0) tail(prereturns[,i], maxx) else NA,
+					mexsimdata = if(model$modelinc[1]==0) mexsimdata[[i]] else NULL, vexsimdata = vexsimdata[[i]] )
+			h = matrix(tail(htmp@path$sigmaSim^2, n.sim), nrow = n.sim)
+			x = matrix(htmp@path$seriesSim,  nrow = n.sim + n.start)
+			simlist[[i]] = list(h = h, x = x)
+		}
+		if(!only.density){
+			H = array(NA, dim = c(n.sim, m, m.sim))
+			tmpH = array(NA, dim = c(m, m, n.sim))
+			for(i in 1:n.sim) H[i,,] = t(sapply(simlist, FUN = function(x) as.numeric(x$h[i,])))
+			for(i in 1:m.sim){
+				for(j in 1:n.sim){
+					tmpH[ , , j] = sqrt(diag( H[j, , i]) ) %*% simR[[i]][,,j] %*% sqrt(diag( H[j, , i] ) )
+				}
+				simH[[i]] = tmpH
 			}
-			simH[[i]] = tmpH
 		}
 		if(model$modelinc[1]>0){
 			simxX = array(NA, dim = c(n.sim+n.start, m, m.sim))
@@ -1984,18 +2018,42 @@
 		# reshape
 		for(j in 1:m.sim) simX[[j]] = tail(simX[[j]], n.sim)
 	}
-	
 	msim = list()
-	msim$simH = simH
-	msim$simR = simR
-	msim$simX = simX
-	msim$simRes = simRes
-	msim$simZ = zres
-	msim$rseed = rseed
-	model$n.sim = n.sim
-	model$m.sim = m.sim
-	model$n.start = n.start
-	model$startMethod = startMethod[1]
+	
+	if(only.density){
+		msim$simX = simX
+		msim$rseed = rseed
+		model$n.sim = n.sim
+		model$m.sim = m.sim
+		model$n.start = n.start
+		model$startMethod = startMethod[1]
+	} else{
+		msim$simH = simH
+		msim$simR = simR
+		msim$simX = simX
+		msim$simRes = simRes
+		msim$simZ = zres
+		msim$rseed = rseed
+		model$n.sim = n.sim
+		model$m.sim = m.sim
+		model$n.start = n.start
+		model$startMethod = startMethod[1]
+	}
+	model$only.density = only.density
+	# need to run gc and rm since 'memory accumulates here'
+	if(exists("simX")) rm(simX)
+	if(exists("simRes")) rm(simRes)
+	if(exists("simH")) rm(simH)
+	if(exists("H")) rm(H)
+	if(exists("simlist")) rm(simlist)
+	if(exists("tmpH")) rm(tmpH)
+	if(exists("mtmp")) rm(mtmp)
+	if(exists("simxX")) rm(simxX)
+	if(exists("zres")) rm(zres)
+	if(exists("ures")) rm(ures)
+	if(exists("simR")) rm(simR)
+	
+	gc(verbose = FALSE)
 	
 	ans = new("cGARCHsim",
 			msim = msim,

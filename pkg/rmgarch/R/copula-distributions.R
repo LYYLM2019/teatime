@@ -167,8 +167,9 @@ rcopula.student = function(n, U, Corr, df)
 			z[,,i] = rbind(preZ, .rmvnorm(n = (n.sim + n.start), mean = rep(0, m), sigma = diag(m)))
 		}
 	}
-	
 	xseed = rseed+1
+	simR = vector(mode = "list", length = m.sim)
+	mtmp = vector(mode="list", length=m.sim)
 	if( !is.null(cluster) ){
 		clusterEvalQ(cluster, require(rmgarch))
 		clusterExport(cluster, c("model", "z", "preQ", "Rbar", "Nbar", 
@@ -179,11 +180,10 @@ rcopula.student = function(n, U, Corr, df)
 							n.sim, n.start, m, rseed[j])
 				})
 	} else{
-		mtmp = lapply(as.list(1:m.sim), FUN = function(j){
-					.copuladccsimf(model, Z = z[,,j], Qbar = Qbar, preQ = preQ, 
-							Nbar = Nbar, Rbar = Rbar, mo = mo, n.sim, n.start, 
-							m, rseed[j])
-				})
+		for(i in 1:m.sim){
+			mtmp[[i]] = .copuladccsimf(model, Z = z[,,i], Qbar = Qbar, preQ = preQ, 
+					Nbar = Nbar, Rbar = Rbar, mo = mo, n.sim, n.start, m, rseed[i])
+		}
 	}
 	simR = lapply(mtmp, FUN = function(x) if(is.matrix(x$R)) array(x$R, dim = c(m, m, n.sim)) else last(x$R, n.sim))
 	Ures = vector(mode = "list", length = m)
@@ -194,7 +194,10 @@ rcopula.student = function(n, U, Corr, df)
 	} else{
 		for(i in 1:m) Ures[[i]] = pnorm(matrix(sapply(mtmp, FUN = function(x) x$Z[,i]), ncol = m.sim))
 		for(i in 1:m.sim) Usim[,,i] = matrix(sapply(Ures, FUN = function(x) x[-(1:mo),i]), ncol = m)
-	} 
+	}
+	rm(Ures)
+	rm(mtmp)
+	gc(verbose=FALSE)
 	return(list(Usim = Usim, simR = simR))
 }
 
@@ -247,7 +250,9 @@ rcopula.student = function(n, U, Corr, df)
 		R[,,i] = res[[2]][[i]]
 		Q[,,i] = res[[3]][[i]]
 	}
-	ans = list( Q = Q, R = R, Z = res[[3]])
+	Z = res[[3]]
+	ans = list( Q = Q, R = R, Z = Z)
+	rm(res)
 	return( ans )
 }
 #------------------------------------------------------------------------------------
