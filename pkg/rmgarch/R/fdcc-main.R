@@ -76,7 +76,7 @@
 		if(is.null(VAR.opt$lag)) modelinc[1] = 1 else modelinc[1] = as.integer( VAR.opt$lag )
 		if(!is.null(VAR.opt$external.regressors)){
 			if(!is.matrix(VAR.opt$external.regressors)) stop("\nexternal.regressors must be a matrix.")
-			modelinc[2] = dim(VAR.opt$external.regressors)[1]
+			modelinc[2] = dim(VAR.opt$external.regressors)[2]
 			modeldata$mexdata = VAR.opt$external.regressors
 		} else{
 			modeldata$mexdata = NULL
