@@ -1665,7 +1665,7 @@ getfdccpars = function(pars, model){
 	names(vecmax) = rownames(umodel$modelinc[1:18,])
 	vecmax = apply(umodel$modelinc, 1, FUN = function(x) max(x) )
 	maxOrder = apply(umodel$modelinc, 2, FUN = function(x) max(c(x[2], x[3], x[8], x[9])))
-	sumv = 18 + sum(pmax(1, vecmax[c(2,3,6,8,9,10,11,12,13,16)])) - 10
+	sumv = 18 + sum(pmax(1, vecmax[c(2,3,6,8,9,10,11,12,13,15,16)])) - 11
 	tmpmat = matrix(0, ncol = m+1, nrow = sumv)
 	nx = 0
 	pnames = NULL
