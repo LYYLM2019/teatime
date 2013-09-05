@@ -1,4 +1,5 @@
 useDynLib(rugarch)
+import(methods)
 importFrom(graphics, plot, lines)
 importFrom(stats, coef, residuals, fitted, vcov, quantile)
 importFrom(Rsolnp, solnp, gosolnp, startpars)

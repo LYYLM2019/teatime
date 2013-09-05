@@ -5,7 +5,7 @@ Version: 1.2-8
 Date: 2013-08-30
 Author: Alexios Ghalanos <alexios@4dscape.com>
 Maintainer: Alexios Ghalanos <alexios@4dscape.com>
-Depends: methods
+Depends: R (>= 2.10), methods
 LinkingTo: Rcpp, RcppArmadillo
 Imports: Rsolnp, nloptr, ks, numDeriv, spd, xts, zoo, chron, SkewHyperbolic
 Description: ARFIMA, in-mean, external regressors and various GARCH flavours, with methods for fit, forecast, simulation, inference and plotting.
