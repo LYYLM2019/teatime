@@ -1,4 +1,5 @@
 useDynLib(dbm)
+import(methods)
 importFrom(graphics, plot, lines)
 importFrom(stats, coef, fitted, vcov, residuals, model.matrix, logLik, hat, hatvalues, AIC, BIC)
 importFrom(Rsolnp, solnp, gosolnp, startpars)

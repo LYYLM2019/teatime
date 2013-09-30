@@ -7,7 +7,7 @@ Author: Alexios Ghalanos <alexios@4dscape.com>
 Maintainer: Alexios Ghalanos <alexios@4dscape.com>
 Depends: methods
 LinkingTo: Rcpp
-Imports: Rsolnp, numDeriv, xts, zoo, chron, nloptr, Epi
+Imports: Rsolnp, numDeriv, xts, zoo, nloptr, Epi
 Description: Dynamic Binary Model
 Collate: auxilliary.R estimation.R imports.R methods.R postestimation.R prediction.R
 LazyLoad: yes

@@ -172,18 +172,19 @@ iqrtransform = function(x, type = 7, inverse = FALSE, median.x = FALSE, IQR.x = 
 
 shadeplot = function(signal, series, signal.col = "WhiteSmoke", 
 		series.col = "steelblue", main = "", ylim = c(min(series), max(series)), 
-		...)
+		cex.main = 1, cex.axis = 1, ...)
 {
 	UseMethod("shadeplot")
 }
 
 shadeplot.xts = function(signal, series, signal.col = "WhiteSmoke", 
 		series.col = "steelblue", main = "", ylim = c(min(series), max(series)), 
-		...)
+		cex.main = 1, cex.axis = 1, ...)
 {
 	ep <- axTicksByTime(index(series))
-	par(mar = c(2.5, 2.5, 2, 1))
-	plot(as.numeric(series[,1]), type="l", xaxt = "n", ylab="",xlab="", main = main, ylim = ylim, yaxs = "i")
+	par(mar = c(5, 2.5, 2, 1))
+	plot(as.numeric(series[,1]), type="l", xaxt = "n", ylab="",xlab="", main = main, cex.main = cex.main, 
+			cex.axis =  cex.axis, ylim = ylim, yaxs = "i")
     signal = signal[index(series)]
     start = which(diff(c(0,signal))==1)
     end = which(diff(c(0,signal))==(-1))-1

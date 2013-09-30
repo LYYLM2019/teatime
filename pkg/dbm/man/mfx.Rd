@@ -73,7 +73,8 @@ require(TTR)
 data(recession)
 tmp = recession$T10Y - recession$TB3M
 recession$spread =  tmp - EMA(tmp, 6)
-recession$cpiadj = ROC(recession$CPI,n=12,type="discrete")-SMA(ROC(recession$CPI,n=12,type="discrete"), 6)
+recession$cpiadj = ROC(recession$CPI,n=12,type="discrete")-
+SMA(ROC(recession$CPI,n=12,type="discrete"), 6)
 y = recession[,c("OECDR","spread","cpiadj")]
 y = na.omit(y)
 mod = dbm(y, x.vars = c("spread","cpiadj"), x.lags = 3, arp = 1, arq = 1)

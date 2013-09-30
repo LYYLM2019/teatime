@@ -10,7 +10,8 @@ signals.
 }
 \usage{
 \method{shadeplot}{xts}(signal, series, signal.col = "WhiteSmoke", 
-series.col = "steelblue", main = "", ylim = c(min(series), max(series)), ...)
+series.col = "steelblue", main = "", ylim = c(min(series), max(series)), 
+cex.main = 1, cex.axis = 1, ...)
 }
 \arguments{
 \item{signal}{
@@ -31,6 +32,12 @@ Plot title.
 }
 \item{ylim}{
 The upper and lower y-axis limits.
+}
+\item{cex.main}{
+Title magnification.
+}
+\item{cex.axis}{
+Axis magnification.
 }
 \item{\dots}{
 Additional arguments passed to the \code{lines} function
