@@ -302,11 +302,11 @@
 	
 	
 	if(!is.null(cluster)){
-		parallel::clusterEvalQ(cluster, require(racd))
-		parallel::clusterExport(cluster, c("modelinc", "ipars", "idx", "h", "q", "res",
+		clusterEvalQ(cluster, require(racd))
+		clusterExport(cluster, c("modelinc", "ipars", "idx", "h", "q", "res",
 						"tmpskew", "tmpshape", "tskew", "tshape", "sbounds", "sseed",
 						"vexsim", "skexsim", "shexsim", "n", "m", "constm", "mexsim"), envir = environment())
-		S = parallel::parLapply(cluster, 1:m.sim, function(i){
+		S = parLapply(cluster, 1:m.sim, function(i){
 					set.seed(sseed[i])
 					tmp = try(.C("csacdsimC", model = as.integer(modelinc), pars = as.double(ipars[,1]), 
 									idx = as.integer(idx[,1]-1), h = as.double(h), q = as.double(q), 

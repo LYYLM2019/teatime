@@ -1068,32 +1068,58 @@ acdfilter = function(spec, data, out.sample = 0,  n.old = NULL, skew0 = NULL, sh
 setMethod("acdfilter", signature(spec = "ACDspec"), .acdfilterswitch)
 #----------------------------------------------------------------------------------
 # forecast
-acdforecast = function(fit, n.ahead = 10, n.roll = 0, 
+acdforecast = function(fitORspec, data = NULL, n.ahead = 10, n.roll = 0, out.sample = 0,
 		external.forecasts = list(mregfor = NULL, vregfor = NULL, 
-				skregfor = NULL, shregfor = NULL), m.sim = 1000, cluster = NULL, ...)
+				skregfor = NULL, shregfor = NULL), m.sim = 1000, cluster = NULL, 
+		skew0 = NULL, shape0 = NULL, ...)
 {
 	UseMethod("acdforecast")
 }
 
-.acdforecastswitch = function(fit, n.ahead = 10, n.roll = 0, 
+# path method (required for n.ahead forecast) no available for mcs model...catch it
+# before it is dispatched
+
+.acdforecastswitch1 = function(fitORspec, data = NULL, n.ahead = 10, n.roll = 0, out.sample = 0,
 		external.forecasts = list(mregfor = NULL, vregfor = NULL, 
-				skregfor = NULL, shregfor = NULL), m.sim = 1000, cluster = NULL, ...)
+				skregfor = NULL, shregfor = NULL), m.sim = 1000, cluster = NULL, 
+		skew0 = NULL, shape0 = NULL, ...)
 {
+	fit = fitORspec
 	switch(fit@model$vmodel$model, 
-			sGARCH = .acdforecast(fit = fit, n.ahead = n.ahead, 
+			sGARCH = .acdforecast1(fit = fit, n.ahead = n.ahead, 
 					n.roll = n.roll, 
 					external.forecasts = external.forecasts, m.sim = m.sim, 
 					cluster = cluster, ...),
-			csGARCH = .acdforecast(fit = fit, n.ahead = n.ahead, 
+			csGARCH = .acdforecast1(fit = fit, n.ahead = n.ahead, 
 					n.roll = n.roll,  
 					external.forecasts = external.forecasts, m.sim = m.sim, 
 					cluster = cluster, ...),
-			mcsGARCH = .mcsacdforecast(fit = fit, n.ahead = n.ahead, 
+			mcsGARCH = .mcsacdforecast1(fit = fit, n.ahead = n.ahead, 
 					n.roll = n.roll, 
 					external.forecasts = external.forecasts, 
 					m.sim = m.sim, cluster = cluster, ...))
 }
-setMethod("acdforecast", signature(fit = "ACDfit"), .acdforecastswitch)
+
+.acdforecastswitch2 = function(fitORspec, data = NULL, n.ahead = 10, n.roll = 0, out.sample = 0,
+		external.forecasts = list(mregfor = NULL, vregfor = NULL, 
+				skregfor = NULL, shregfor = NULL), m.sim = 1000, cluster = NULL, 
+		skew0 = NULL, shape0 = NULL, ...)
+{
+	spec = fitORspec
+	if(spec@model$vmodel$model=="mcsGARCH") stop("\nmcs model forecast with ACDspec dispatch method not implemented.")
+	switch(spec@model$vmodel$model, 
+			sGARCH = .acdforecast2(spec = spec, data = data, n.ahead = n.ahead, 
+					n.roll = n.roll, out.sample = out.sample,
+					external.forecasts = external.forecasts, m.sim = m.sim, 
+					cluster = cluster, skew0 = skew0, shape0 = shape0, ...),
+			csGARCH = .acdforecast2(spec = spec, data = data, n.ahead = n.ahead, 
+					n.roll = n.roll,  out.sample = out.sample,
+					external.forecasts = external.forecasts, m.sim = m.sim, 
+					cluster = cluster, skew0 = skew0, shape0 = shape0, ...))
+}
+setMethod("acdforecast", signature(fitORspec = "ACDfit"), .acdforecastswitch1)
+setMethod("acdforecast", signature(fitORspec = "ACDspec"), .acdforecastswitch2)
+
 #----------------------------------------------------------------------------------
 # simulation
 acdsim = function(fit, n.sim = 1000, n.start = 0, m.sim = 1, 
@@ -1262,8 +1288,14 @@ setMethod("convergence", signature(object = "ACDfit"),  .acdconvergence)
 	}
 	return(ans)
 }
+
 setMethod("convergence", signature(object = "ACDroll"),  definition = .acdconvergenceroll)
 
+.acdmulticonvergence = function(object)
+{
+	return( sapply(object@fit, function(x) convergence(x) ) )
+}
+setMethod("convergence", signature(object = "ACDmultifit"),  .acdmulticonvergence)
 
 
 #----------------------------------------------------------------------------------
@@ -1357,7 +1389,19 @@ setMethod("coef", signature(object = "ACDfilter"), .acdfitcoef)
 	return(object@model$coef) 
 }
 
+.acdmulticoef = function(object)
+{
+	if(is(object, "ACDmultifit")){
+		ans = sapply(object@fit, function(x) coef(x))
+	} else{
+		ans = sapply(object@filter, function(x) coef(x))
+	}
+	return(ans)
+}
+
 setMethod("coef", signature(object = "ACDroll"), .acdrollcoef)
+setMethod("coef", signature(object = "ACDmultifit"), .acdmulticoef)
+setMethod("coef", signature(object = "ACDmultifilter"), .acdmulticoef)
 
 #-------------------------------------------------------------------------------
 # conditional mean (fitted method)
@@ -1384,12 +1428,46 @@ setMethod("coef", signature(object = "ACDroll"), .acdrollcoef)
 	return(ans)
 }
 
+.acdmultifitted = function(object)
+{
+	if(object@desc$type == "equal"){
+		if(is(object, "ACDmultifit")){
+			ans = sapply(object@fit, FUN = function(x){
+						if(convergence(x) == 0) fitted(x) else rep(NA, length = length(x@fit$data))
+					}, simplify = TRUE)
+		} else if(is(object, "ACDmultifilter")){
+			ans = sapply(object@fit, function(x) fitted(x))
+		} else{
+			# assuming n.ahead=1 else will
+			if(object@desc$n.ahead==1){
+				ans = sapply(object@forecast, function(x) fitted(x))
+			} else{
+				ans = lapply(object@forecast, function(x) fitted(x))
+			}
+		}
+	} else{
+		if(is(object, "ACDmultifit")){
+			ans = lapply(object@fit, FUN = function(x){
+						if(convergence(x) == 0) fitted(x) else rep(NA, length = length(x@fit$data))
+					}, simplify = TRUE)
+		} else if(is(object, "ACDmultifilter")){
+			ans = lapply(object@fit, function(x) fitted(x))
+		} else{
+			ans = lapply(object@forecast, function(x) fitted(x))
+		}
+	}
+	return(ans)
+}
 setMethod("fitted", signature(object = "ACDfit"), .acdfitted)
 setMethod("fitted", signature(object = "ACDfilter"), .acdfitted)
 setMethod("fitted", signature(object = "ACDforecast"), .acdfitted)
 setMethod("fitted", signature(object = "ACDpath"), .acdfitted)
 setMethod("fitted", signature(object = "ACDsim"), .acdfitted)
 setMethod("fitted", signature(object = "ACDroll"), .acdfitted)
+setMethod("fitted", signature(object = "ACDmultifit"), .acdmultifitted)
+setMethod("fitted", signature(object = "ACDmultifilter"), .acdmultifitted)
+setMethod("fitted", signature(object = "ACDmultiforecast"), .acdmultifitted)
+
 #-------------------------------------------------------------------------------
 # residuals method
 .acdfitresids = function(object, standardize = FALSE)
@@ -1402,8 +1480,34 @@ setMethod("fitted", signature(object = "ACDroll"), .acdfitted)
 	return(ans)
 }
 
+.acdmultifitresids = function(object, standardize = FALSE)
+{
+	if(object@desc$type == "equal"){
+		if(is(object, "ACDmultifit")){
+			ans = sapply(object@fit, FUN = function(x){
+						if(convergence(x) == 0) residuals(x, standardize) else rep(NA, length = length(x@fit$data))
+					}, simplify = TRUE)
+		} else {
+			ans = sapply(object@fit, function(x) residuals(x, standardize))
+		}
+	} else{
+		if(is(object, "ACDmultifit")){
+			ans = lapply(object@fit, FUN = function(x){
+						if(convergence(x) == 0) residuals(x, standardize) else rep(NA, length = length(x@fit$data))
+					}, simplify = TRUE)
+		} else{
+			ans = lapply(object@fit, function(x) residuals(x, standardize))
+		}
+	}
+	return(ans)
+}
+
 setMethod("residuals", signature(object = "ACDfit"), .acdfitresids)
 setMethod("residuals", signature(object = "ACDfilter"), .acdfitresids)
+setMethod("residuals", signature(object = "ACDmultifilter"), .acdmultifitresids)
+setMethod("residuals", signature(object = "ACDmultifit"), .acdmultifitresids)
+
+
 #-------------------------------------------------------------------------------
 # conditional sigma
 .acdsigma = function(object)
@@ -1429,12 +1533,48 @@ setMethod("residuals", signature(object = "ACDfilter"), .acdfitresids)
 	return(ans)
 }
 
+.acdmultifitsigma = function(object)
+{
+	if(object@desc$type == "equal"){
+		if(is(object, "ACDmultifit")){
+			ans = sapply(object@fit, FUN = function(x){
+						if(convergence(x) == 0) sigma(x) else rep(NA, length = length(x@fit$data))
+					}, simplify = TRUE)
+		} else if(is(object, "ACDmultifilter")){
+			ans = sapply(object@filter, function(x) sigma(x))
+		} else{
+			# assuming n.ahead=1 else will
+			if(object@desc$n.ahead==1){
+				ans = sapply(object@forecast, function(x) sigma(x))
+			} else{
+				ans = lapply(object@forecast, function(x) sigma(x))
+			}
+		}
+	} else{
+		if(is(object, "ACDmultifit")){
+			ans = lapply(object@fit, FUN = function(x){
+						if(convergence(x) == 0) sigma(x) else rep(NA, length = length(x@fit$data))
+					}, simplify = TRUE)
+		} else if(is(object, "ACDmultifilter")){
+			ans = lapply(object@filter, function(x) sigma(x))
+		} else{
+			ans = lapply(object@forecast, function(x) sigma(x))
+		}
+	}
+	return(ans)
+}
+
+
+
 setMethod("sigma", signature(object = "ACDfit"), .acdsigma)
 setMethod("sigma", signature(object = "ACDfilter"), .acdsigma)
 setMethod("sigma", signature(object = "ACDforecast"), .acdsigma)
 setMethod("sigma", signature(object = "ACDpath"), .acdsigma)
 setMethod("sigma", signature(object = "ACDsim"), .acdsigma)
 setMethod("sigma", signature(object = "ACDroll"), .acdsigma)
+setMethod("sigma", signature(object = "ACDmultifit"), .acdmultifitsigma)
+setMethod("sigma", signature(object = "ACDmultifilter"), .acdmultifitsigma)
+setMethod("sigma", signature(object = "ACDmultiforecast"), .acdmultifitsigma)
 
 #-------------------------------------------------------------------------------
 # conditional skew
@@ -1487,12 +1627,49 @@ skew = function(object, transformed = TRUE, ...)
 	return(ans)
 }
 
+.acdmultiskew = function(object, transformed = TRUE)
+{
+	if(object@desc$type == "equal"){
+		if(is(object, "ACDmultifit")){
+			ans = sapply(object@fit, FUN = function(x){
+						if(convergence(x) == 0) skew(x, transformed) else rep(NA, length = length(x@fit$data))
+					}, simplify = TRUE)
+		} else if(is(object, "ACDmultifilter")){
+			ans = sapply(object@filter, function(x) skew(x, transformed))
+		} else{
+			# assuming n.ahead=1 else will
+			if(object@desc$n.ahead==1){
+				ans = sapply(object@forecast, function(x) skew(x, transformed))
+			} else{
+				ans = lapply(object@forecast, function(x) skew(x, transformed))
+			}
+		}
+	} else{
+		if(is(object, "ACDmultifit")){
+			ans = lapply(object@fit, FUN = function(x){
+						if(convergence(x) == 0) skew(x, transformed) else rep(NA, length = length(x@fit$data))
+					}, simplify = TRUE)
+		} else if(is(object, "ACDmultifilter")){
+			ans = lapply(object@filter, function(x) skew(x, transformed))
+		} else{
+			ans = lapply(object@forecast, function(x) skew(x, transformed))
+		}
+	}
+	return(ans)
+}
+	
+	
 setMethod("skew", signature(object = "ACDfit"), .acdskew)
 setMethod("skew", signature(object = "ACDfilter"), .acdskew)
 setMethod("skew", signature(object = "ACDforecast"), .acdskew)
 setMethod("skew", signature(object = "ACDpath"), .acdskew)
 setMethod("skew", signature(object = "ACDsim"), .acdskew)
 setMethod("skew", signature(object = "ACDroll"), .acdskew)
+
+setMethod("skew", signature(object = "ACDmultifit"), .acdmultiskew)
+setMethod("skew", signature(object = "ACDmultifilter"), .acdmultiskew)
+setMethod("skew", signature(object = "ACDmultiforecast"), .acdmultiskew)
+
 
 #-------------------------------------------------------------------------------
 # conditional shape
@@ -1545,12 +1722,49 @@ shape = function(object, transformed = TRUE, ...)
 	return(ans)
 }
 
+.acdmultishape = function(object, transformed = TRUE)
+{
+	if(object@desc$type == "equal"){
+		if(is(object, "ACDmultifit")){
+			ans = sapply(object@fit, FUN = function(x){
+						if(convergence(x) == 0) shape(x, transformed) else rep(NA, length = length(x@fit$data))
+					}, simplify = TRUE)
+		} else if(is(object, "ACDmultifilter")){
+			ans = sapply(object@filter, function(x) shape(x, transformed))
+		} else{
+			# assuming n.ahead=1 else will
+			if(object@desc$n.ahead==1){
+				ans = sapply(object@forecast, function(x) shape(x, transformed))
+			} else{
+				ans = lapply(object@forecast, function(x) shape(x, transformed))
+			}
+		}
+	} else{
+		if(is(object, "ACDmultifit")){
+			ans = lapply(object@fit, FUN = function(x){
+						if(convergence(x) == 0) shape(x, transformed) else rep(NA, length = length(x@fit$data))
+					}, simplify = TRUE)
+		} else if(is(object, "ACDmultifilter")){
+			ans = lapply(object@filter, function(x) shape(x, transformed))
+		} else{
+			ans = lapply(object@forecast, function(x) shape(x, transformed))
+		}
+	}
+	return(ans)
+}
+
 setMethod("shape", signature(object = "ACDfit"), .acdshape)
 setMethod("shape", signature(object = "ACDfilter"), .acdshape)
 setMethod("shape", signature(object = "ACDforecast"), .acdshape)
 setMethod("shape", signature(object = "ACDpath"), .acdshape)
 setMethod("shape", signature(object = "ACDsim"), .acdshape)
 setMethod("shape", signature(object = "ACDroll"), .acdshape)
+
+
+setMethod("shape", signature(object = "ACDmultifit"), .acdmultishape)
+setMethod("shape", signature(object = "ACDmultifilter"), .acdmultishape)
+setMethod("shape", signature(object = "ACDmultiforecast"), .acdmultishape)
+
 #-------------------------------------------------------------------------------
 # conditional skewness
 skewness = function(object, ...)
@@ -1654,9 +1868,19 @@ setMethod("kurtosis", signature(object = "ACDroll"), .acdkurtosis)
 	}
 }
 
+.acdmultifitLikelihood = function(object)
+{
+	if(is(object, "ACDmultifit")){
+		return(sapply(object@fit, function(x) likelihood(x)))
+	} else{
+		return(sapply(object@filter, function(x) likelihood(x)))
+	}
+}
 setMethod("likelihood", signature(object = "ACDfit"), .acdfitLikelihood)
 setMethod("likelihood", signature(object = "ACDfilter"), .acdfitLikelihood)
-setMethod("likelihood", signature(object = "ACDroll"), .acdfitLikelihood)
+
+setMethod("likelihood", signature(object = "ACDmultifit"), .acdmultifitLikelihood)
+setMethod("likelihood", signature(object = "ACDmultifilter"), .acdmultifitLikelihood)
 
 #-------------------------------------------------------------------------------
 # infocriteria method

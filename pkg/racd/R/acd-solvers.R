@@ -19,31 +19,26 @@
 .acdsolver = function(solver, pars, fun, Ifn, ILB, IUB, gr, hessian, parscale, 
 		control, LB, UB, cluster = NULL, arglist)
 {
-	ifn = function(pars, arglist){
-		(sum(pars[arglist$model$pos.matrix["alpha",1]:arglist$model$pos.matrix["alpha",2]]) + sum(pars[arglist$model$pos.matrix["beta",1]:arglist$model$pos.matrix["beta",2]]))
-	}
 	if(arglist$fit.control$n.sim>0){
-		if(solver == "msoptim" | solver == "msucminf" | solver == "msnlminb" | solver == "mssolnp"){
-			nm = names(pars)
-			N = control$restarts
-			if(is.null(N)) N = 2
-			control$restarts = NULL
-			pars = startpars(pars = pars, fun = fun, LB = LB, UB = UB, ineqfun = ifn,
-					ineqLB = 0, ineqUB = 1,
-					bestN = N, n.sim = arglist$fit.control$n.sim, cluster = cluster, 
-					arglist = arglist)
-			pars = pars[,-NCOL(pars), drop=FALSE]
-			colnames(pars) = nm
-		} else{
-			control$restarts = NULL
-			nm = names(pars)
-			pars = startpars(pars = pars, fun = fun, LB = LB, UB = UB, bestN = 1, 
-					ineqfun = ifn, ineqLB = 0, ineqUB = 1,
-					n.sim = arglist$fit.control$n.sim, cluster = cluster, 
-					arglist = arglist)
-			pars = pars[1,-NCOL(pars)]
-			names(pars) = nm
+		ifun = function(pars, arglist){
+			alpha = pars[arglist$model$pos.matrix["alpha",1]:arglist$model$pos.matrix["alpha",2]]
+			beta  = pars[arglist$model$pos.matrix["beta",1]:arglist$model$pos.matrix["beta",2]]
+			sum(alpha+beta)
 		}
+		nm = names(pars)
+		N = control$restarts
+		if(is.null(N)) N = 2
+		control$restarts = NULL
+		arglist$transform = FALSE
+		dopt = lapply(pars, function(x) list(mean=unname(x), sd = 2*abs(unname(x))))
+		pars = startpars(pars = pars, fun = fun, distr = rep(2, length(pars)), distr.opt = dopt, 
+				ineqfun = ifun, ineqLB = 1e-12, ineqUB = 0.99, 
+				LB = LB, UB = UB, bestN = N, n.sim = arglist$fit.control$n.sim, 
+				cluster = cluster, arglist = arglist)
+		pars = pars[,-NCOL(pars), drop=FALSE]
+		colnames(pars) = nm
+	} else{
+		pars = matrix(pars, nrow = 1)
 	}
 	retval = switch(solver,
 			nlminb = .nlminbsolver(pars, fun, gr, hessian, parscale, control, LB, UB, arglist),
@@ -111,7 +106,7 @@
 
 # for use with cmaes vectorized + parallel application
 pfun = function(pars, arglist, fun, cluster){
-	ans = parallel::parRapply(cluster, pars, function(x) fun(x, arglist))
+	ans = parRapply(cluster, pars, function(x) fun(x, arglist))
 	return(ans)
 }
 
@@ -246,10 +241,10 @@ pfun = function(pars, arglist, fun, cluster){
 	N = NROW(pars)
 	xsol = vector(mode="list", length = N)
 	if(!is.null(cluster)){
-		parallel::clusterEvalQ(cluster, require(racd))
-		parallel::clusterExport(cluster, c("fun", "LB", "UB", "control", "pars", "arglist"), 
+		clusterEvalQ(cluster, require(racd))
+		clusterExport(cluster, c("fun", "LB", "UB", "control", "pars", "arglist"), 
 				envir = environment())
-		xsol = parallel::parLapplyLB(cluster, 1:N, function(i){
+		xsol = parLapplyLB(cluster, 1:N, function(i){
 					return( .optimsolver(pars[i,], fun, gr = NULL, control, LB, UB, arglist))
 				})
 	} else{
@@ -258,7 +253,7 @@ pfun = function(pars, arglist, fun, cluster){
 		}
 	}
 	best = sapply(xsol, function(x) x$sol$value)
-	best = which(best == min(best, na.rm=TRUE))
+	best = which(best == min(best, na.rm=TRUE))[1]
 	return(xsol[[best]])
 }
 
@@ -266,10 +261,10 @@ pfun = function(pars, arglist, fun, cluster){
 	N = NROW(pars)
 	xsol = vector(mode="list", length = N)
 	if(!is.null(cluster)){
-		parallel::clusterEvalQ(cluster, require(racd))
-		parallel::clusterExport(cluster, c("fun", "LB", "UB", "control", "pars", "arglist", "parscale"), 
+		clusterEvalQ(cluster, require(racd))
+		clusterExport(cluster, c("fun", "LB", "UB", "control", "pars", "arglist", "parscale"), 
 				envir = environment())
-		xsol = parallel::parLapplyLB(cluster, 1:N, function(i){
+		xsol = parLapplyLB(cluster, 1:N, function(i){
 					return( .ucminfsolver(pars[i,], fun, gr = NULL, hessian = NULL, 
 									parscale = parscale, control, LB, UB, arglist) )
 				})
@@ -289,10 +284,10 @@ pfun = function(pars, arglist, fun, cluster){
 	N = NROW(pars)
 	xsol = vector(mode="list", length = N)
 	if(!is.null(cluster)){
-		parallel::clusterEvalQ(cluster, require(racd))
-		parallel::clusterExport(cluster, c("fun", "LB", "UB", "control", "pars", "arglist", "parscale"), 
+		clusterEvalQ(cluster, require(racd))
+		clusterExport(cluster, c("fun", "LB", "UB", "control", "pars", "arglist", "parscale"), 
 				envir = environment())
-		xsol = parallel::parLapplyLB(cluster, 1:N, function(i){
+		xsol = parLapplyLB(cluster, 1:N, function(i){
 					return( .nlminbsolver(pars, fun, gr = NULL, hessian = NULL, 
 									parscale, control, LB, UB, arglist) )
 				})
@@ -312,10 +307,10 @@ pfun = function(pars, arglist, fun, cluster){
 	N = NROW(pars)
 	xsol = vector(mode="list", length = N)
 	if(!is.null(cluster)){
-		parallel::clusterEvalQ(cluster, require(racd))
-		parallel::clusterExport(cluster, c("fun", "LB", "UB", "control", "pars", "arglist"), 
+		clusterEvalQ(cluster, require(racd))
+		clusterExport(cluster, c("fun", "LB", "UB", "control", "pars", "arglist"), 
 				envir = environment())
-		xsol = parallel::parLapplyLB(cluster, 1:N, function(i){
+		xsol = parLapplyLB(cluster, 1:N, function(i){
 					return( .solnpsolver(pars[i,], fun, Ifn = NULL, ILB = NULL, IUB = NULL, control, LB, UB, arglist) )
 				})
 	} else{

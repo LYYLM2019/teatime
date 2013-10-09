@@ -599,7 +599,7 @@
 			model = model)
 	return(sol)
 }
-.mcsacdforecast = function(fit, n.ahead = 1, n.roll = 0, 
+.mcsacdforecast1 = function(fit, n.ahead = 1, n.roll = 0, 
 		external.forecasts = list(mregfor = NULL, vregfor = NULL, skxregfor = NULL,
 				shxregfor = NULL), m.sim = 1000, cluster = NULL, DailyVar, ...)
 {
@@ -1202,17 +1202,17 @@
 	
 	gspec = .spec2GARCH(spec)
 	if( !is.null(cluster) ){
-		parallel::clusterEvalQ(cl = cluster, library(racd))
-		parallel::clusterExport(cluster, c("data", "index", "s","refit.every", 
+		clusterEvalQ(cl = cluster, library(racd))
+		clusterExport(cluster, c("data", "index", "s","refit.every", 
 						"keep.coef", "shaped", "skewed", "ghyp", "gspec", "fixARMA",
 						"fixGARCH", "fixUBShape", "UBShapeAdd", "fixGHlambda","compareGARCH",
 						"rollind", "spec", "out.sample", "mex", "vex", "skex", "shex",
 						"solver", "solver.control", "fit.control", "DailyV"), envir = environment())
-		if(mex) parallel::clusterExport(cluster, c("mexdata"), envir = environment())
-		if(vex)  parallel::clusterExport(cluster, c("vexdata"), envir = environment())
-		if(skex)  parallel::clusterExport(cluster, c("skdata"), envir = environment())
-		if(shex)  parallel::clusterExport(cluster, c("shdata"), envir = environment())
-		tmp = parallel::parLapplyLB(cl = cluster, 1:m, fun = function(i){
+		if(mex) clusterExport(cluster, c("mexdata"), envir = environment())
+		if(vex)  clusterExport(cluster, c("vexdata"), envir = environment())
+		if(skex)  clusterExport(cluster, c("skdata"), envir = environment())
+		if(shex)  clusterExport(cluster, c("shdata"), envir = environment())
+		tmp = parLapplyLB(cl = cluster, 1:m, fun = function(i){
 					zspec = spec
 					xspec = gspec
 					if(mex){
@@ -1225,7 +1225,7 @@
 					}
 					if(skex) zspec@model$modeldata$skxdata = skdata[rollind[[i]],,drop=FALSE]
 					if(shex) zspec@model$modeldata$shxdata = shdata[rollind[[i]],,drop=FALSE]
-					gfit = ugarchfit(xspec, xts::xts(data[rollind[[i]]], index[rollind[[i]]]), out.sample = out.sample[i], 
+					gfit = ugarchfit(xspec, xts(data[rollind[[i]]], index[rollind[[i]]]), out.sample = out.sample[i], 
 							solver = "hybrid", DailyVar = DailyV[[i]])
 					if(convergence(gfit)==0){
 						if(fixGHlambda && zspec@model$dmodel$model=="ghyp"){
@@ -1252,7 +1252,7 @@
 						skew0 = NULL
 						glik = NA
 					}
-					fit = try(acdfit(zspec, xts::xts(data[rollind[[i]]], index[rollind[[i]]]), out.sample = out.sample[i], 
+					fit = try(acdfit(zspec, xts(data[rollind[[i]]], index[rollind[[i]]]), out.sample = out.sample[i], 
 									solver = solver, solver.control = solver.control, 
 									fit.control = fit.control, shape0 = shape0, skew0 = skew0,
 									DailyVar = DailyV[[i]]), silent=TRUE)
@@ -1331,7 +1331,7 @@
 				skew0 = NULL
 				glik = NA
 			}
-			fit = try(acdfit(zspec, xts::xts(data[rollind[[i]]], index[rollind[[i]]]), out.sample = out.sample[i], 
+			fit = try(acdfit(zspec, xts(data[rollind[[i]]], index[rollind[[i]]]), out.sample = out.sample[i], 
 							solver = solver, solver.control = solver.control, 
 							fit.control = fit.control, shape0 = shape0, skew0 = skew0, 
 							DailyVar = DailyV[[i]]), silent=TRUE)
@@ -1589,18 +1589,18 @@
 		if(any(distribution==c("std","sstd","ged","sged","jsu","nig","ghyp","ghst"))) shaped = TRUE else shaped = FALSE
 		if(any(distribution==c("ghyp"))) ghyp = TRUE else ghyp = FALSE
 		if( !is.null(cluster) ){
-			parallel::clusterEvalQ(cl = cluster, library(racd))
-			parallel::clusterExport(cluster, c("data", "index","s","refit.every",
+			clusterEvalQ(cl = cluster, library(racd))
+			clusterExport(cluster, c("data", "index","s","refit.every",
 							"keep.coef", "shaped", "skewed", "ghyp", "gspec", "fixARMA",
 							"fixGARCH", "fixUBShape", "UBShapeAdd", "fixGHlambda","compareGARCH",
 							"rollind", "spec", "out.sample", "mex", "vex", "skex", "shex",
 							"noncidx", "solver", "solver.control", "fit.control", "DailyV"),
 					envir = environment())
-			if(mex) parallel::clusterExport(cluster,  c("mexdata"), envir = environment())
-			if(vex)  parallel::clusterExport(cluster, c("vexdata"), envir = environment())
-			if(skex)  parallel::clusterExport(cluster, c("skdata"), envir = environment())
-			if(shex)  parallel::clusterExport(cluster, c("shdata"), envir = environment())
-			tmp = parallel::parLapplyLB(cl = cluster, as.list(noncidx), fun = function(i){
+			if(mex) clusterExport(cluster,  c("mexdata"), envir = environment())
+			if(vex)  clusterExport(cluster, c("vexdata"), envir = environment())
+			if(skex)  clusterExport(cluster, c("skdata"), envir = environment())
+			if(shex)  clusterExport(cluster, c("shdata"), envir = environment())
+			tmp = parLapplyLB(cl = cluster, as.list(noncidx), fun = function(i){
 						zspec = spec
 						xspec = gspec
 						if(mex){
@@ -1613,7 +1613,7 @@
 						}
 						if(skex) zspec@model$modeldata$skxdata = skdata[rollind[[i]],,drop=FALSE]
 						if(shex) zspec@model$modeldata$shxdata = shdata[rollind[[i]],,drop=FALSE]
-						gfit = ugarchfit(xspec, xts::xts(data[rollind[[i]]], index[rollind[[i]]]), out.sample = out.sample[i], 
+						gfit = ugarchfit(xspec, xts(data[rollind[[i]]], index[rollind[[i]]]), out.sample = out.sample[i], 
 								solver = "hybrid", DailyVar = DailyV[[i]])
 						if(convergence(gfit)==0){
 							if(fixGHlambda && zspec@model$dmodel$model=="ghyp"){
@@ -1640,7 +1640,7 @@
 							skew0 = NULL
 							glik = NA
 						}
-						fit = try(acdfit(spec, xts::xts(data[rollind[[i]]], index[rollind[[i]]]), out.sample = out.sample[i], 
+						fit = try(acdfit(spec, xts(data[rollind[[i]]], index[rollind[[i]]]), out.sample = out.sample[i], 
 										solver = solver, solver.control = solver.control, 
 										fit.control = fit.control, shape0 = shape0, 
 										skew0 = skew0, DailyVar = DailyV[[i]]), silent=TRUE)
@@ -1688,7 +1688,7 @@
 						}
 						if(skex) zspec@model$modeldata$skxdata = skdata[rollind[[i]],,drop=FALSE]
 						if(shex) zspec@model$modeldata$shxdata = shdata[rollind[[i]],,drop=FALSE]
-						gfit = ugarchfit(xspec, xts::xts(data[rollind[[i]]], index[rollind[[i]]]), out.sample = out.sample[i], 
+						gfit = ugarchfit(xspec, xts(data[rollind[[i]]], index[rollind[[i]]]), out.sample = out.sample[i], 
 								solver = "hybrid", DailyVar = DailyV[[i]])
 						if(convergence(gfit)==0){
 							if(fixGHlambda && zspec@model$dmodel$model=="ghyp"){
@@ -1715,7 +1715,7 @@
 							skew0 = NULL
 							glik = NA
 						}
-						fit = try(acdfit(spec, xts::xts(data[rollind[[i]]], index[rollind[[i]]]), out.sample = out.sample[i], 
+						fit = try(acdfit(spec, xts(data[rollind[[i]]], index[rollind[[i]]]), out.sample = out.sample[i], 
 										solver = solver, solver.control = solver.control, 
 										fit.control = fit.control, shape0 = shape0, 
 										skew0 = skew0, DailyVar = DailyV[[i]]), silent=TRUE)

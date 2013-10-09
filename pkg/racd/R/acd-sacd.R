@@ -32,11 +32,7 @@
 	fit.control = arglist$fit.control
 	m = model$maxOrder
 	N = c(m, T)
-	distribution = model$modeldesc$distribution
 	modelinc = model$modelinc
-	# distribution number
-	# 1 = norm, 2=snorm, 3=std, 4=sstd, 5=ged, 6=sged, 7=nig
-	dist = model$modeldesc$distno
 	hm = arglist$tmph
 	rx = .arfimaxfilteracd(modelinc, ipars[,1], idx, mexdata = arglist$mexdata, h = hm, 
 			tskew = 0, tshape = 0, data = data, N = N, arglist$garchenv)
@@ -149,7 +145,7 @@
 	if( is.finite(llh) && !is.na(llh) && !is.nan(llh) ){
 		assign("racd_llh", llh, envir = arglist$garchenv) 
 	} else {
-		llh = (get("racd_llh", arglist$garchenv) + 100*(abs(get("racd_llh",arglist$garchenv))))
+		llh = (get("racd_llh", arglist$garchenv) + 0.1*(abs(get("racd_llh",arglist$garchenv))))
 	}
 	# LHT = raw scores
 	LHT = -ans$LHT
@@ -306,11 +302,11 @@
 	
 	
 	if(!is.null(cluster)){
-		parallel::clusterEvalQ(cluster, require(racd))
-		parallel::clusterExport(cluster, c("modelinc", "ipars", "idx", "h", "res",
+		clusterEvalQ(cluster, require(racd))
+		clusterExport(cluster, c("modelinc", "ipars", "idx", "h", "res",
 						"tmpskew", "tmpshape", "tskew", "tshape", "sbounds", "sseed",
 						"vexsim", "skexsim", "shexsim", "n", "m", "constm", "mexsim"), envir = environment())
-		S = parallel::parLapply(cluster, 1:m.sim, function(i){
+		S = parLapply(cluster, 1:m.sim, function(i){
 					set.seed(sseed[i])
 					tmp = try(.C("sacdsimC", model = as.integer(modelinc), pars = as.double(ipars[,1]), 
 									idx = as.integer(idx[,1]-1), h = as.double(h), z = as.double(z[,i]), 
