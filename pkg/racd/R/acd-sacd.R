@@ -55,7 +55,7 @@
 	shxdata = as.double(as.vector(arglist$shxdata))
 	persist = (sum(ipars[idx["alpha",1]:idx["alpha",2],1]) + sum(ipars[idx["beta",1]:idx["beta",2],1]))
 	# unconditional sigma value
-	mvar = mean(res*res)
+	#mvar = mean(res*res)
 	if(modelinc[9]>0){
 		ipars[idx["omega",1],1] = max(eps, ipars[idx["omega",1],1]) 
 		hEst = mvar
@@ -302,11 +302,11 @@
 	
 	
 	if(!is.null(cluster)){
-		clusterEvalQ(cluster, require(racd))
-		clusterExport(cluster, c("modelinc", "ipars", "idx", "h", "res",
+		parallel::clusterEvalQ(cluster, require(racd))
+		parallel::clusterExport(cluster, c("modelinc", "ipars", "idx", "h", "res",
 						"tmpskew", "tmpshape", "tskew", "tshape", "sbounds", "sseed",
 						"vexsim", "skexsim", "shexsim", "n", "m", "constm", "mexsim"), envir = environment())
-		S = parLapply(cluster, 1:m.sim, function(i){
+		S = parallel::parLapply(cluster, 1:m.sim, function(i){
 					set.seed(sseed[i])
 					tmp = try(.C("sacdsimC", model = as.integer(modelinc), pars = as.double(ipars[,1]), 
 									idx = as.integer(idx[,1]-1), h = as.double(h), z = as.double(z[,i]), 
@@ -404,6 +404,7 @@
 	ipars = model$pars
 	sbounds = model$sbounds
 	N = 0
+	resids = fit@fit$residuals
 	m = model$maxOrder
 	if(modelinc[8]>0) {
 		mexdata = matrix(model$modeldata$mexdata, ncol = modelinc[8])
@@ -514,8 +515,9 @@
 					lambda = ipars[idx["ghlambda",1],1], n = m.sim, seed = sseed[1]+k)
 		}
 	}
-	if(is.na(preresiduals[1])){
-		preres = z[1:m, , drop = FALSE]*matrix(presigma, ncol = m.sim, nrow = m)
+	
+	if(is.na(preresiduals[1])){	
+		preres = tail(resids, m)
 	}
 	res = rbind( preres, matrix(0, ncol = m.sim, nrow = n) )
 	

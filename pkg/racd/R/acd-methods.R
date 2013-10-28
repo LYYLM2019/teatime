@@ -264,7 +264,7 @@ acdspec = function(
 	modelinc[20] = di$include.ghlambda
 	# the last aux value is the distribution number
 	modelinc[41] = modeldesc$distno
-
+	
 	
 	maxOrder = max(c(max(mmodel$armaOrder), max(vmodel$garchOrder), max(dmodel$skewOrder), max(dmodel$shapeOrder)))
 	modelnames = .expand.model(modelinc)
@@ -934,7 +934,7 @@ setMethod(f = "getspec", signature(object = "ACDfit"), definition = .getspecacd)
 	dmodel$shape.regressors = object@model$modeldata$shxdata
 	dmodel$skew.regressors = object@model$modeldata$skxdata
 	tmp = acdspec( variance.model = vmodel, mean.model = mmodel,
-					distribution.model = dmodel, start.pars  = model$start.pars, 
+			distribution.model = dmodel, start.pars  = model$start.pars, 
 			fixed.pars = as.list(fixed.pars))
 	tmp@model$pars[tmp@model$pars[,2]==0,5:6] = object@model$pars[tmp@model$pars[,2]==0,5:6]
 	setbounds(tmp)<-list(shape=object@model$sbounds[3:4], skew = object@model$sbounds[1:2])
@@ -1076,25 +1076,21 @@ acdforecast = function(fitORspec, data = NULL, n.ahead = 10, n.roll = 0, out.sam
 	UseMethod("acdforecast")
 }
 
-# path method (required for n.ahead forecast) no available for mcs model...catch it
-# before it is dispatched
-
-.acdforecastswitch1 = function(fitORspec, data = NULL, n.ahead = 10, n.roll = 0, out.sample = 0,
+.acdforecastswitch1 = function(fitORspec, n.ahead = 10, n.roll = 0, 
 		external.forecasts = list(mregfor = NULL, vregfor = NULL, 
-				skregfor = NULL, shregfor = NULL), m.sim = 1000, cluster = NULL, 
-		skew0 = NULL, shape0 = NULL, ...)
+				skregfor = NULL, shregfor = NULL), m.sim = 1000, cluster = NULL, ...)
 {
 	fit = fitORspec
 	switch(fit@model$vmodel$model, 
-			sGARCH = .acdforecast1(fit = fit, n.ahead = n.ahead, 
+			sGARCH = .acdforecast(fit = fit, n.ahead = n.ahead, 
 					n.roll = n.roll, 
 					external.forecasts = external.forecasts, m.sim = m.sim, 
 					cluster = cluster, ...),
-			csGARCH = .acdforecast1(fit = fit, n.ahead = n.ahead, 
+			csGARCH = .acdforecast(fit = fit, n.ahead = n.ahead, 
 					n.roll = n.roll,  
 					external.forecasts = external.forecasts, m.sim = m.sim, 
 					cluster = cluster, ...),
-			mcsGARCH = .mcsacdforecast1(fit = fit, n.ahead = n.ahead, 
+			mcsGARCH = .mcsacdforecast(fit = fit, n.ahead = n.ahead, 
 					n.roll = n.roll, 
 					external.forecasts = external.forecasts, 
 					m.sim = m.sim, cluster = cluster, ...))
@@ -1102,11 +1098,11 @@ acdforecast = function(fitORspec, data = NULL, n.ahead = 10, n.roll = 0, out.sam
 
 .acdforecastswitch2 = function(fitORspec, data = NULL, n.ahead = 10, n.roll = 0, out.sample = 0,
 		external.forecasts = list(mregfor = NULL, vregfor = NULL, 
-				skregfor = NULL, shregfor = NULL), m.sim = 1000, cluster = NULL, 
-		skew0 = NULL, shape0 = NULL, ...)
+				skregfor = NULL, shregfor = NULL), m.sim = 1000, 
+		cluster = NULL, skew0 = NULL, shape0 = NULL, ...)
 {
 	spec = fitORspec
-	if(spec@model$vmodel$model=="mcsGARCH") stop("\nmcs model forecast with ACDspec dispatch method not implemented.")
+	if(spec@model$vmodel$model=="mcsGARCH") stop("\nacdforecast-->error: mcsGARCH model does not support specification dispatch method for forecast.")
 	switch(spec@model$vmodel$model, 
 			sGARCH = .acdforecast2(spec = spec, data = data, n.ahead = n.ahead, 
 					n.roll = n.roll, out.sample = out.sample,
@@ -1141,13 +1137,13 @@ acdsim = function(fit, n.sim = 1000, n.start = 0, m.sim = 1,
 					preshape = preshape, rseed = rseed, mexsimdata = mexsimdata, 
 					vexsimdata = vexsimdata, skxsimdata = skxsimdata, 
 					shxsimdata = shxsimdata, ...),
-		   csGARCH = .csacdsim(fit = fit, n.sim = n.sim, n.start = n.start, 
+			csGARCH = .csacdsim(fit = fit, n.sim = n.sim, n.start = n.start, 
 					m.sim = m.sim, presigma = presigma, prereturns = prereturns, 
 					preresiduals = preresiduals, preskew = preskew, 
 					preshape = preshape, rseed = rseed, mexsimdata = mexsimdata, 
 					vexsimdata = vexsimdata, skxsimdata = skxsimdata, 
 					shxsimdata = shxsimdata, ...),
-		  mcsGARCH = .mcsacdsim(fit = fit, n.sim = n.sim, n.start = n.start, 
+			mcsGARCH = .mcsacdsim(fit = fit, n.sim = n.sim, n.start = n.start, 
 					m.sim = m.sim, presigma = presigma, prereturns = prereturns, 
 					preresiduals = preresiduals, preskew = preskew, 
 					preshape = preshape, rseed = rseed, mexsimdata = mexsimdata, 
@@ -1177,13 +1173,13 @@ acdpath = function(spec, n.sim = 1000, n.start = 0, m.sim = 1, presigma = NA,
 					preshape = preshape, rseed = rseed, mexsimdata = mexsimdata, 
 					vexsimdata = vexsimdata, skxsimdata = skxsimdata, 
 					shxsimdata = shxsimdata, cluster = cluster, ...),
-		   csGARCH = .csacdpath(spec = spec, n.sim = n.sim, n.start = n.start, 
+			csGARCH = .csacdpath(spec = spec, n.sim = n.sim, n.start = n.start, 
 					m.sim = m.sim, presigma = presigma, prereturns = prereturns, 
 					preresiduals = preresiduals, preskew = preskew, 
 					preshape = preshape, rseed = rseed, mexsimdata = mexsimdata, 
 					vexsimdata = vexsimdata, skxsimdata = skxsimdata, 
 					shxsimdata = shxsimdata, cluster = cluster, ...),
-		  mcsGARCH = .sacdpath(spec = spec, n.sim = n.sim, n.start = n.start, 
+			mcsGARCH = .sacdpath(spec = spec, n.sim = n.sim, n.start = n.start, 
 					m.sim = m.sim, presigma = presigma, prereturns = prereturns, 
 					preresiduals = preresiduals, preskew = preskew, 
 					preshape = preshape, rseed = rseed, mexsimdata = mexsimdata, 
@@ -1241,7 +1237,7 @@ acdroll = function(spec, data, n.ahead = 1, forecast.length = 500,
 					fixARMA = fixARMA, fixGARCH = fixGARCH, fixUBShape = fixUBShape, 
 					UBShapeAdd = UBShapeAdd, fixGHlambda = fixGHlambda, 
 					compareGARCH = compareGARCH, ...)
-			)
+	)
 	return(ans)
 }
 setMethod("acdroll", signature(spec = "ACDspec"),  .acdrollswitch)
@@ -1516,23 +1512,23 @@ setMethod("residuals", signature(object = "ACDmultifit"), .acdmultifitresids)
 		D = object@model$modeldata$index[1:object@model$modeldata$T]
 	}
 	ans = switch(class(object)[1],
-		ACDfit = xts(object@fit$sigma, D),
-		ACDfilter = xts(object@filter$sigma, D),
-		ACDforecast = object@forecast$sigmaFor,
-		ACDsim = {
-			ans = object@simulation$sigmaSim
-			rownames(ans) = paste("T+",1:NROW(object@simulation$sigmaSim), sep="")
-			return(ans)
-		},
-		ACDpath ={
-			ans = object@path$sigmaSim
-			rownames(ans) = paste("T+",1:NROW(object@path$sigmaSim), sep="")
-			return(ans)
-		},
-		ACDroll = as.xts(object@forecast$density[,"Sigma",drop=FALSE]))
+			ACDfit = xts(object@fit$sigma, D),
+			ACDfilter = xts(object@filter$sigma, D),
+			ACDforecast = object@forecast$sigmaFor,
+			ACDsim = {
+				ans = object@simulation$sigmaSim
+				rownames(ans) = paste("T+",1:NROW(object@simulation$sigmaSim), sep="")
+				return(ans)
+			},
+			ACDpath ={
+				ans = object@path$sigmaSim
+				rownames(ans) = paste("T+",1:NROW(object@path$sigmaSim), sep="")
+				return(ans)
+			},
+			ACDroll = as.xts(object@forecast$density[,"Sigma",drop=FALSE]))
 	return(ans)
 }
-
+# The multifit should be array with dates?
 .acdmultifitsigma = function(object)
 {
 	if(object@desc$type == "equal"){
@@ -1657,8 +1653,8 @@ skew = function(object, transformed = TRUE, ...)
 	}
 	return(ans)
 }
-	
-	
+
+
 setMethod("skew", signature(object = "ACDfit"), .acdskew)
 setMethod("skew", signature(object = "ACDfilter"), .acdskew)
 setMethod("skew", signature(object = "ACDforecast"), .acdskew)
@@ -1949,7 +1945,7 @@ setMethod("show",
 			cat("\n")
 			invisible(object)
 		})	
-		
+
 setMethod("show",
 		signature(object = "ACDfit"),
 		function(object){

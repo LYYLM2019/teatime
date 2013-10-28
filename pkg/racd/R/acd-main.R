@@ -466,7 +466,7 @@
 #---------------------------------------------------------------------------------
 # SECTION ACD forecast
 #---------------------------------------------------------------------------------
-.acdforecast1 = function(fit, n.ahead = 10, n.roll = 0, 
+.acdforecast = function(fit, n.ahead = 10, n.roll = 0, 
 		external.forecasts = list(mregfor = NULL, vregfor = NULL, skxregfor = NULL,
 				shxregfor = NULL), m.sim = 1000, cluster = NULL, ...)
 {
@@ -496,17 +496,17 @@
 	fcreq = ifelse(ns >= (n.ahead+n.roll), n.ahead+n.roll, ns)
 	fspec = acdspec(variance.model = list(model = model$vmodel$model, 
 					garchOrder = model$vmodel$garchOrder, 
-				external.regressors = model$modeldata$vexdata, variance.targeting = FALSE), 
-		mean.model = list(armaOrder = model$mmodel$armaOrder, 
-				include.mean = model$mmodel$include.mean, archm = as.logical(modelinc[5]), 
-				arfima = as.logical(modelinc[4]), external.regressors = model$modeldata$mexdata), 
-		distribution.model = list(model = model$dmodel$model, 
-				skewOrder = model$dmodel$skewOrder, skewshock = model$dmodel$skewshock, 
-				skewmodel = model$dmodel$skewmodel,
-				skew.regressors = model$modeldata$skxdata,
-				shapeOrder = model$dmodel$shapeOrder, shapeshock = model$dmodel$shapeshock, 
-				shapemodel = model$dmodel$shapemodel,
-				shape.regressors = model$modeldata$shxdata, exp.rate=model$sbounds[5]))
+					external.regressors = model$modeldata$vexdata, variance.targeting = FALSE), 
+			mean.model = list(armaOrder = model$mmodel$armaOrder, 
+					include.mean = model$mmodel$include.mean, archm = as.logical(modelinc[5]), 
+					arfima = as.logical(modelinc[4]), external.regressors = model$modeldata$mexdata), 
+			distribution.model = list(model = model$dmodel$model, 
+					skewOrder = model$dmodel$skewOrder, skewshock = model$dmodel$skewshock, 
+					skewmodel = model$dmodel$skewmodel,
+					skew.regressors = model$modeldata$skxdata,
+					shapeOrder = model$dmodel$shapeOrder, shapeshock = model$dmodel$shapeshock, 
+					shapemodel = model$dmodel$shapemodel,
+					shape.regressors = model$modeldata$shxdata, exp.rate=model$sbounds[5]))
 	setfixed(fspec)<-as.list(fit@model$pars[fit@model$pars[,3]==1,1])
 	setbounds(fspec)<-list(shape = fit@model$sbounds[3:4], skew = fit@model$sbounds[1:2])
 	fspec@model$modeldata$mexdata = mxf
@@ -598,6 +598,7 @@
 			}
 		}
 	}
+	
 	fcst = list()
 	fcst$n.ahead = n.ahead
 	fcst$n.roll = n.roll
@@ -617,7 +618,7 @@
 	return(ans)
 }
 
-
+# CONTINUE HERE:
 .acdforecast2 = function(spec, data = NULL, n.ahead = 10, n.roll = 0, out.sample = 0,
 		external.forecasts = list(mregfor = NULL, vregfor = NULL, skxregfor = NULL,
 				shxregfor = NULL), m.sim = 1000, cluster = NULL, skew0 = NULL, 
@@ -632,26 +633,22 @@
 	ns = out.sample
 	N = Nor - ns
 	model = spec@model
+	modelinc = model$modelinc
+	idx = model$pidx
 	ipars = model$pars
 	pars = unlist(model$fixed.pars)
 	parnames = names(pars)
 	modelnames = rugarch:::.checkallfixed(spec)
 	if(is.na(all(match(modelnames, parnames), 1:length(modelnames)))) {
-		cat("\nacdforecast-->error: parameters names do not match specification\n")
+		cat("\nacdfilter-->error: parameters names do not match specification\n")
 		cat("Expected Parameters are: ")
 		cat(paste(modelnames))
 		cat("\n")
 		stop("Exiting", call. = FALSE)
 	}
-	# once more into the spec
-	# NB Any changes made to the spec are not preserved once we apply set fixed
-	setfixed(spec)<-as.list(pars)
-	
-	
-	modelinc = model$modelinc
-	idx = model$pidx
+	fspec = spec
+	setfixed(fspec)<-as.list(pars)
 	if( n.roll > ns ) stop("\nacdforecast-->error: n.roll must not be greater than out.sample!")
-
 	# check if necessary the external regressor forecasts provided first
 	xreg = .acdforcregressors(model, external.forecasts$mregfor, 
 			external.forecasts$vregfor, external.forecasts$skxregfor, 
@@ -663,13 +660,12 @@
 	
 	# filter data (check external regressor data - must equal length of origData)
 	fcreq = ifelse(ns >= (n.ahead+n.roll), n.ahead+n.roll, ns)
-	fspec = spec
 	fspec@model$modeldata$mexdata = mxf
 	fspec@model$modeldata$vexdata = vxf
 	fspec@model$modeldata$skxdata = skxf
 	fspec@model$modeldata$shxdata = shxf
 	# Generate the 1 extra ahead forecast
-	if((n.ahead+n.roll)<=out.sample){
+	if((n.ahead+n.roll)<=ns){
 		tmp =  xts(data[1:(N + fcreq)], index[1:(N + fcreq)])
 	} else{
 		tmp =  xts(c(data[1:(N + fcreq)],0), c(index[1:(N + fcreq)], index[(N + fcreq)]+1))	
@@ -776,12 +772,12 @@
 # SECTION ACD roll
 #---------------------------------------------------------------------------------
 .acdroll = function(spec, data, n.ahead = 1, forecast.length = 500, n.start = NULL, 
-    refit.every = 25, refit.window = c("recursive", "moving"), 
-    window.size = NULL, solver = "ucminf", fit.control = list(), 
-    solver.control = list(), calculate.VaR = TRUE, VaR.alpha = c(0.01, 
-        0.05), cluster = NULL, keep.coef = TRUE, fixARMA = TRUE, fixGARCH = TRUE, 
-	fixUBShape = TRUE, UBShapeAdd = 0, fixGHlambda = TRUE, compareGARCH = c("LL", "none"),
-	...)
+		refit.every = 25, refit.window = c("recursive", "moving"), 
+		window.size = NULL, solver = "ucminf", fit.control = list(), 
+		solver.control = list(), calculate.VaR = TRUE, VaR.alpha = c(0.01, 
+				0.05), cluster = NULL, keep.coef = TRUE, fixARMA = TRUE, fixGARCH = TRUE, 
+		fixUBShape = TRUE, UBShapeAdd = 0, fixGHlambda = TRUE, compareGARCH = c("LL", "none"),
+		...)
 {
 	tic = Sys.time()
 	compareGARCH = compareGARCH[1]
@@ -871,17 +867,17 @@
 	
 	gspec = .spec2GARCH(spec)
 	if( !is.null(cluster) ){
-		clusterEvalQ(cl = cluster, library(racd))
-		clusterExport(cluster, c("data", "index", "s","refit.every", 
+		parallel::clusterEvalQ(cl = cluster, library(racd))
+		parallel::clusterExport(cluster, c("data", "index", "s","refit.every", 
 						"keep.coef", "shaped", "skewed", "ghyp", "gspec", "fixARMA",
 						"fixGARCH", "fixUBShape", "UBShapeAdd", "fixGHlambda","compareGARCH",
 						"rollind", "spec", "out.sample", "mex", "vex", "skex", "shex",
 						"solver", "solver.control", "fit.control"), envir = environment())
-		if(mex)  clusterExport(cluster, c("mexdata"), envir = environment())
-		if(vex)  clusterExport(cluster, c("vexdata"), envir = environment())
-		if(skex) clusterExport(cluster, c("skdata"), envir = environment())
-		if(shex) clusterExport(cluster, c("shdata"), envir = environment())
-		tmp = parLapplyLB(cl = cluster, 1:m, fun = function(i){
+		if(mex) parallel::clusterExport(cluster, c("mexdata"), envir = environment())
+		if(vex)  parallel::clusterExport(cluster, c("vexdata"), envir = environment())
+		if(skex)  parallel::clusterExport(cluster, c("skdata"), envir = environment())
+		if(shex)  parallel::clusterExport(cluster, c("shdata"), envir = environment())
+		tmp = parallel::parLapplyLB(cl = cluster, 1:m, fun = function(i){
 					zspec = spec
 					xspec = gspec
 					if(mex){
@@ -921,7 +917,7 @@
 						skew0 = NULL
 						glik = NA
 					}
-					fit = try(acdfit(zspec, xts(data[rollind[[i]]], index[rollind[[i]]]), out.sample = out.sample[i], 
+					fit = try(acdfit(zspec, xts::xts(data[rollind[[i]]], index[rollind[[i]]]), out.sample = out.sample[i], 
 									solver = solver, solver.control = solver.control, 
 									fit.control = fit.control, shape0 = shape0, skew0 = skew0), silent=TRUE)
 					if(inherits(fit, 'try-error') || convergence(fit)!=0 || is.null(fit@fit$cvar)){
@@ -996,7 +992,7 @@
 				skew0 = NULL
 				glik = NA
 			}
-			fit = try(acdfit(zspec, xts(data[rollind[[i]]], index[rollind[[i]]]), out.sample = out.sample[i], 
+			fit = try(acdfit(zspec, xts::xts(data[rollind[[i]]], index[rollind[[i]]]), out.sample = out.sample[i], 
 							solver = solver, solver.control = solver.control, 
 							fit.control = fit.control, shape0 = shape0, skew0 = skew0), silent=TRUE)
 			if(inherits(fit, 'try-error') || convergence(fit)!=0 || is.null(fit@fit$cvar)){
@@ -1078,7 +1074,7 @@
 			cf = vector(mode = "list", length = m)
 			for(i in 1:m){
 				cf[[i]]$index = index[tail(rollind[[i]],1) - out.sample[i]]
-			 cf[[i]]$coef = tmp[[i]]$cf
+				cf[[i]]$coef = tmp[[i]]$cf
 			}
 		} else{
 			cf = NULL
@@ -1246,18 +1242,18 @@
 		if(any(distribution==c("std","sstd","ged","sged","jsu","nig","ghyp","ghst"))) shaped = TRUE else shaped = FALSE
 		if(any(distribution==c("ghyp"))) ghyp = TRUE else ghyp = FALSE
 		if( !is.null(cluster) ){
-			clusterEvalQ(cl = cluster, library(racd))
-			clusterExport(cluster, c("data", "index","s","refit.every",
+			parallel::clusterEvalQ(cl = cluster, library(racd))
+			parallel::clusterExport(cluster, c("data", "index","s","refit.every",
 							"keep.coef", "shaped", "skewed", "ghyp", "gspec", "fixARMA",
 							"fixGARCH", "fixUBShape", "UBShapeAdd", "fixGHlambda","compareGARCH",
 							"rollind", "spec", "out.sample", "mex", "vex", "skex", "shex",
 							"noncidx", "solver", "solver.control", "fit.control"),
 					envir = environment())
-			if(mex)  clusterExport(cluster,  c("mexdata"), envir = environment())
-			if(vex)  clusterExport(cluster, c("vexdata"), envir = environment())
-			if(skex) clusterExport(cluster, c("skdata"), envir = environment())
-			if(shex) clusterExport(cluster, c("shdata"), envir = environment())
-			tmp = parLapplyLB(cl = cluster, as.list(noncidx), fun = function(i){
+			if(mex) parallel::clusterExport(cluster,  c("mexdata"), envir = environment())
+			if(vex)  parallel::clusterExport(cluster, c("vexdata"), envir = environment())
+			if(skex)  parallel::clusterExport(cluster, c("skdata"), envir = environment())
+			if(shex)  parallel::clusterExport(cluster, c("shdata"), envir = environment())
+			tmp = parallel::parLapplyLB(cl = cluster, as.list(noncidx), fun = function(i){
 						zspec = spec
 						xspec = gspec
 						if(mex){
@@ -1297,7 +1293,7 @@
 							skew0 = NULL
 							glik = NA
 						}
-						fit = try(acdfit(spec, xts(data[rollind[[i]]], index[rollind[[i]]]), out.sample = out.sample[i], 
+						fit = try(acdfit(spec, xts::xts(data[rollind[[i]]], index[rollind[[i]]]), out.sample = out.sample[i], 
 										solver = solver, solver.control = solver.control, 
 										fit.control = fit.control, shape0 = shape0, skew0 = skew0), silent=TRUE)
 						if(inherits(fit, 'try-error') || convergence(fit)!=0 || is.null(fit@fit$cvar)){
@@ -1370,7 +1366,7 @@
 							skew0 = NULL
 							glik = NA
 						}
-						fit = try(acdfit(spec, xts(data[rollind[[i]]], index[rollind[[i]]]), out.sample = out.sample[i], 
+						fit = try(acdfit(spec, xts::xts(data[rollind[[i]]], index[rollind[[i]]]), out.sample = out.sample[i], 
 										solver = solver, solver.control = solver.control, 
 										fit.control = fit.control, shape0 = shape0, skew0 = skew0), silent=TRUE)
 						if(inherits(fit, 'try-error') || convergence(fit)!=0 || is.null(fit@fit$cvar)){

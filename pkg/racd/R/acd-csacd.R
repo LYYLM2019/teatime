@@ -302,11 +302,11 @@
 	
 	
 	if(!is.null(cluster)){
-		clusterEvalQ(cluster, require(racd))
-		clusterExport(cluster, c("modelinc", "ipars", "idx", "h", "q", "res",
+		parallel::clusterEvalQ(cluster, require(racd))
+		parallel::clusterExport(cluster, c("modelinc", "ipars", "idx", "h", "q", "res",
 						"tmpskew", "tmpshape", "tskew", "tshape", "sbounds", "sseed",
 						"vexsim", "skexsim", "shexsim", "n", "m", "constm", "mexsim"), envir = environment())
-		S = parLapply(cluster, 1:m.sim, function(i){
+		S = parallel::parLapply(cluster, 1:m.sim, function(i){
 					set.seed(sseed[i])
 					tmp = try(.C("csacdsimC", model = as.integer(modelinc), pars = as.double(ipars[,1]), 
 									idx = as.integer(idx[,1]-1), h = as.double(h), q = as.double(q), 
@@ -410,6 +410,8 @@
 	sbounds = model$sbounds
 	N = 0
 	m = model$maxOrder
+	resids = fit@fit$residuals
+	
 	if(modelinc[8]>0) {
 		mexdata = matrix(model$modeldata$mexdata, ncol = modelinc[8])
 		N = dim(mexdata)[1]
@@ -521,8 +523,8 @@
 					lambda = ipars[idx["ghlambda",1],1], n = m.sim, seed = sseed[1]+k)
 		}
 	}
-	if(is.na(preresiduals[1])){
-		preres = z[1:m, , drop = FALSE]*matrix(presigma, ncol = m.sim, nrow = m)
+	if(is.na(preresiduals[1])){	
+		preres = tail(resids, m)
 	}
 	res = rbind( preres, matrix(0, ncol = m.sim, nrow = n) )
 	
