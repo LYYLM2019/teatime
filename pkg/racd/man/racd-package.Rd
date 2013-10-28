@@ -23,7 +23,7 @@ Version: \tab 1.0-3\cr
 Date: \tab 2013-08-28\cr
 License: \tab GPL\cr
 LazyLoad: \tab yes\cr
-Depends: \tab R (>= 2.10), methods, rugarch
+Depends: \tab R (>= 2.10), methods, rugarch\cr
 Imports: \tab xts, Rsolnp, ucminf, numDeriv, zoo, parma\cr}
 The racd package builds on the rugarch package and imports many of the methods
 used there. In terms of GARCH models, only the simple GARCH (sGARCH) and 
