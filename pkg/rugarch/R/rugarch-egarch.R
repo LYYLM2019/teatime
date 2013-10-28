@@ -128,8 +128,8 @@
 	if(fit.control$stationarity == 1 && modelinc[15] == 0){
 		cb = .garchconbounds()
 		Ifn = rugarch:::.egarchcon
-		ILB = cb$LB
-		IUB = cb$UB
+		ILB = 1.00000001
+		IUB = 1000
 		if(solver == "solnp" | solver == "gosolnp" | solver == "hybrid") fit.control$stationarity = 0
 	} else{
 		Ifn = NULL
