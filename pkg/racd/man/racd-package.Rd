@@ -19,12 +19,12 @@ details in the package's vignette.
 \tabular{ll}{
 Package: \tab racd\cr
 Type: \tab Package\cr
-Version: \tab 1.0-1\cr
-Date: \tab 2013-05-15\cr
+Version: \tab 1.0-3\cr
+Date: \tab 2013-08-28\cr
 License: \tab GPL\cr
 LazyLoad: \tab yes\cr
-Depends: \tab R (>= 3.0.0), methods\cr
-Imports: rugarch, xts, Rsolnp, ucminf, numDeriv, zoo\cr}
+Depends: \tab R (>= 2.10), methods, rugarch
+Imports: \tab xts, Rsolnp, ucminf, numDeriv, zoo, parma\cr}
 The racd package builds on the rugarch package and imports many of the methods
 used there. In terms of GARCH models, only the simple GARCH (sGARCH) and 
 component GARCH (csGARCH) and multiplicative component GARCH (mcsGARCH) are used, 
@@ -34,12 +34,11 @@ variance targeting near impossible except for these models.
 }
 \section{How to cite this package}{
   Whenever using this package, please cite as\cr
-
  \preformatted{@Manual{Ghalanos_2013,
  author       = {Alexios Ghalanos},
  title        = {{racd}: Autoregressive Conditional Density Models.},
  year         = {2013},
- note 	      = {R package version 1.0-1.},}}
+ note 	      = {R package version 1.0-3.},}}
 \emph{}
 }
 \section{License}{
