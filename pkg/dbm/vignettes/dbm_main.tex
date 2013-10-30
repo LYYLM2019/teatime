@@ -1,0 +1,295 @@
+\section{Introduction}
+Binary response models have a very rich history in the statistical research literature with diverse
+applications in many fields where the dependent variable takes on a dichotomous value. Early work on
+these models included the tetrachoric correlation analysis of \cite{Pearson1900} and the standard
+biometric textbook of \cite{Finney1971}, with more recent advances dealing with such issues as full
+or partial separation in \cite{Zorn2005}, small sample bias reduction in \cite{Firth1993} and
+\cite{Heinze2002} and heteroscedasticity (see for instance \cite{Keele2006}). In econometrics,
+\cite{Amemiya1981} provided an early review of applications, but more recent research has focused
+on direction of change forecast for stock market returns and recession forecasting which is also
+the motivation of this author.\\
+The Dynamic Binary Model (\verb@dbm@) package implements an autoregressive binary regression model
+described in \cite{Kauppi2008} and further discussed and extended in \citeauthor*{Nyberg2011}(\citeyear{Nyberg2010}, \citeyear{Nyberg2010a},
+and \citeyear{Nyberg2011}). \proglang{R} already includes a large number of packages implementing
+dynamic binary models, with basic functionality already available in the \emph{glm} function of the
+\verb@stats@ package, and more advanced variations in \cite{Zeileis2011}(skew-or generalized-logit),
+\cite{Zeileis2011a} (heteroscedasticy), and \cite{Heinze2013} (bias reduction methods), to name but a few.
+The \verb@dbm@ package uniquely implements the autoregressive model of \cite{Kauppi2008} which is
+believed to provide a much improved fit to typical problems in the time series domain.\\
+The vignette discusses the model background in Section \ref{sec:background} and its implementation in
+Section \ref{sec:implementation}. An interesting application, and exposition of the package's functionality
+is available on my blog (see below). The appendix derives the analytic gradient expressions used in
+the numeric optimization routines.\\
+
+The \verb@dbm@ package is currently available in the \emph{teatime} package repository
+on r-forge\\
+(\url{http://cran.r-project.org/web/packages/teatime/index.html}).
+An example is available on my blog (\url{http://www.unstarched.net}).\\
+
+The package is provided AS IS, without any implied warranty as to its accuracy
+or suitability. A lot of time and effort has gone into the development of this
+package, and it is offered under the GPL-3 license in the spirit of open
+knowledge sharing and dissemination. If you do use the model in published work
+DO remember to cite the package and author (type \verb@citation@("dbm") for
+the appropriate BibTeX entry) , and if you have used it and found it
+useful, drop me a note and let me know.\\
+
+\textbf{USE THE R-SIG-FINANCE MAILING LIST FOR QUESTIONS.}
+\section{Background}\label{sec:background}
+Consider the stochastic process $y_t$, which is binary valued, and the vector of $k$ explanatory variables,
+$x_{i,t}$ for $i=1\ldots k$. Let $\Im_t$ be the information set available at time $t$, then $y_t$
+has a Bernoulli distribution with probability $p_t$:
+\begin{equation}
+{y_t}\left| {{\Im _{t - 1}} \sim B\left( {{p_t}} \right)} \right.
+\end{equation}
+The objective is to model $p_t$ through the CDF transformed dynamics\footnote{The CDF transformation is monotonically increasing and
+guarantees that the resulting transformation will be in the unit interval.}  of a linear process $\pi_t$ such that ${p_t} = \Phi \left( {{\pi _t}} \right)$.
+Formally,
+\begin{equation}
+{E_{t - 1}}\left( {{y_t}} \right) = {P_{t - 1}}\left( {y = 1} \right) = \Phi {\text{ }}\left( {{\pi _t}} \right) = {p_t}
+\end{equation}
+The CDF function, also called the link function, can be one of any number of distributions but has typically been either the Gaussian (probit model),
+Logistic (logit model) or some skewed variation (scobit model). In the \verb@dbm@ package, the Generalized Logistic distribution has been chosen
+as a skewed choice since it nests the Logistic. In the model of \cite{Kauppi2008}, the dynamics of $\pi_t$ take on the following form:
+\begin{equation}\label{eq:dbm}
+{\pi _t} = \omega  + \sum\limits_{i = 1}^k {{\beta _i}{x_{i,t - {l_i}}}}  + \sum\limits_{i = 1}^q {{\delta _i}{y_{t - i}}}  + \sum\limits_{i = 1}^p {{\alpha _i}{\pi _{t - i}}}
+\end{equation}
+where $\delta_i$ represents the coefficient on the $q$ autoregressive terms of the binary variable $y_t$, $\beta_i$ the coefficient on the $i^{th}$(of $k$) explanatory variable $x_t$ with lag $l_i$\footnote{The representation used here, which is the one used in the package, is such that the vector $\mathbf{x}_t$ can contain the same explanatory variable but with a different lag thus enabling a great degree of flexibility, albeit at the cost of some redundancy, in the dynamics.}, and $\alpha_i$ the coefficient on the $p$ autoregressive terms of the dynamics $\pi_t$. The specification without the latter term has already been examined elsewhere, and some results with regards to its asymptotic properties can be found in \cite{Jong2011}.  Related literature on general binomial ARMA type models can be found, among others, in \cite{Al-Osh1991} and more recently, with financial/econometric applications, in \cite{Rydberg2003} and \cite{Startz2008}. \cite{Nyberg2011} introduced a restriction to Equation \ref{eq:dbm} by setting $\delta_1=1-\alpha_1$, leading to a type of error correction model (\emph{ecm}) with strong persistence in the autoregressive dynamics parameter $\alpha_1$ usually observed.\\
+\subsection{Maximum Likelihood Estimation}
+The log-likelihood function (at time $t$) in the maximization, given the vector of parameters $\theta$, the conditional dynamics ${\pi _t}\left( \theta  \right)$ and an appropriate link function $\Phi$, can be represented as:
+\begin{equation}
+l\left( \theta  \right) = \sum\limits_{t = 1}^T {\left[ {{y_t}\log \Phi \left( {{\pi _t}\left( \theta  \right)} \right) + \left( {1 - {y_t}} \right)\log \left( {1 - \Phi \left( {{\pi _t}\left( \theta  \right)} \right)} \right)} \right]}
+\end{equation}
+conditional on initial values for the recursion. Appendix \ref{sec:Appendix} contains the details of the gradient for each of the 3 link functions used in the \verb@dbm@ package and the recursion initialization method.\\
+\subsection{Regularization}
+Regularization, originally proposed by \cite{Tikhonov1974}, enables to avoid over-fitting in systems with many parameters or generally ill posed problems. While there are a number of ways to do this, regularization in the \verb@dbm@ package is based on the $L_2$ norm which is rotationally invariant (as compared to the $L_1$ norm). The likelihood can be represented as:
+\begin{equation}
+l\left( \theta  \right) = \sum\limits_{t = 1}^T {\left[ {{y_t}\log \Phi \left( {{\pi _t}\left( \theta  \right)} \right) + \left( {1 - {y_t}} \right)\log \left( {1 - \Phi \left( {{\pi _t}\left( \theta  \right)} \right)} \right)} \right]}  - \frac{C}{2}\sum\limits_{j = 1}^m {\theta _j^2}
+\end{equation}
+where it is clear how higher values of the $m$ parameters are penalized, with the cost $C$ determined by the user. In future, cross validation may be implemented internally to enable the determination of this cost function.
+\subsection{Forecasting}
+Unlike other nonlinear models, the binary nature of the model allows explicit multi-period iterated forecasts by enumeration of all the possible binary paths. Following from the Appendix of \cite{Kauppi2008}, and adjusting the notation to use forward times, the h-period ahead forecast can be represented as follows:
+\begin{equation}
+\begin{aligned}
+  {E_t}\left( {{y_{t + h}}} \right) &= {E_t}\Phi \left( {{\alpha ^h}{\pi _t} + \sum\limits_{j = 1}^h {\left[ {{\alpha ^{j - 1}}\left( {\omega  + \delta {y_{t + h - j}} + \sum\limits_{i = 1,(h - {l_i}) < j}^p {{\beta _i}{x_{i,t + \left( {h - {l_i}} \right) + 1 - j}}} } \right)} \right]} } \right) \hfill \\
+   &= \sum\limits_{y_{t + 1}^{t + h - 1} \in {B_{h - 1}}} {{P_t}\left( {y_{t + 1}^{t + h - 1}} \right)} \Phi \left( {{\alpha ^h}{\pi _t} + \sum\limits_{j = 1}^h {\left[ {{\alpha ^{j - 1}}\left( {\omega  + \delta {y_{t + h - j}} + \sum\limits_{i = 1,L\left( {{x_i}} \right) \geqslant j}^l {{\beta _i}{x_{i,t + 1 - j}}} } \right)} \right]} } \right) \hfill \\
+\end{aligned}
+\end{equation}
+where, ${y_{t + 1}^{t + h - 1} \in {B_{h - 1}}}$ indicates the evaluation of all possible binary paths for $y$ up to time $t+h-1$, $l_i$ is the lag of each explanatory variable $x_i,i=1,\ldots k$, and
+\begin{equation}
+\begin{gathered}
+  {P_t}\left( {y_{t + 1}^{t + h - 1}} \right) = \prod\limits_{n = 1}^{h - 1} {{{\left( {{p_{t + n}}} \right)}^{{y_{t + n}}}}{{\left( {1 - {p_{t + n}}} \right)}^{\left( {1 - {y_{t + n}}} \right)}}}  \hfill \\
+  {p_{t + n}} = \Phi \left( {{\alpha ^n}{\pi _t} + \sum\limits_{j = 1}^n {{\alpha ^{j - 1}}\left( {\omega  + \delta {y_{t - 1 + j}} + \sum\limits_{i = 1,{l_i} \geqslant j}^k {{\beta _i}{x_{\left\{ {i,t - {l_i} + j} \right\}}}} } \right)} } \right) \hfill \\
+\end{gathered}
+\end{equation}
+Some caution is warranted here since the multi-path forecast, while explicit, starts to grow very fast. Because the implementation in the \verb@dbm@ package does not enforce any compact representation (it simply makes use of the \emph{expand.grid} function), memory issues are likely to arise for forecast horizons greater than 15.
+\section{Implementation}\label{sec:implementation}
+The dbm package estimates the model of \cite{Kauppi2008} by maximum likelihood using analytic gradient information which is passed to the appropriate solver.
+The default is to use the Nelder-Mead algorithm from the optim package with the use of a bounding logistic transformation for the parameters which are constrained
+to ensure either stationarity (autoregressive parameter $\alpha$) or existence in the real domain (the Generalized Logistic skew parameter
+$skew[k]$).
+The result of using such a transformation (given that the optim package does not necessarily include lower and upper bounds for all but one solver), is that the gradient of
+those parameters are shifted slightly from the unconstrained case and I make no special provision to account for this. Since the transformation is turned off
+during the calculation of the final hessian and scores, the standard errors and resulting information is not affected, and it is also my experience that
+estimation is not in the slightest affected by this. If in doubt, there is always the possibility of using any of bound constrained solvers from the nloptr package
+with analytic gradient or the gosolnp solver from the Rsolnp package with numerical gradient. Finally, both the likelihood and gradient, as well as the 
+main part of the forecast routine are implemented in C and C++ for speed.\\
+The main functionality can be found in the \textbf{dbm} function which is used for the ML estimation of a model:
+\begin{Schunk}
+\begin{Sinput}
+> args(dbm)
+\end{Sinput}
+\begin{Soutput}
+function(y, x.vars = NULL, x.lags = 1, arp = 1, arq = 0, ecm = FALSE,
+	constant = TRUE, link = "gaussian", fixed.pars = NULL,
+	solver = "optim", control=list(), parsearch = TRUE, parsim = 5000,
+	method = "Nelder-Mead", ...)
+\end{Soutput}
+\end{Schunk}
+The first argument, \emph{y}, is a multivariate xts matrix with the first column being the binary dependent variable, and the \textbf{names} of the
+independent explanatory variables (corresponding to the column names in y) are passed via the \emph{x.vars} character vector. The lags for each
+of the explanatory variables is then passed using the x.lags integer vector. This means that if you want to include multiple lags from the same
+variable, then the y matrix must include that same variable data as many times as the lags required (with different names). Also note that you must
+not pass any of the data lagged since that is done by the routine (which is why \emph{x.lags} is used). The \emph{arp} and \emph{arp} options denote
+the lags for the auto-regression in the dynamics and dependent variable, respectively, but as currently implemented only lag 1 is allowed. The \emph{ecm}
+option indicates whether to use the error correction restriction of \cite{Nyberg2011}, \emph{constant} whether to include an intercept, and \emph{link}
+the CDF link function with a choice of 'gaussian' (probit), 'logistic' (logit) and 'glogistic' (scobit). The other options are related to
+the parameter start, fixed values (as a named vector), the choice of solver etc. Standard extraction and inference methods are implemented such as 
+\emph{fitted}, \emph{residuals},\emph{coef}, \emph{vcov} (with choice of robust), \emph{likelihood}, \emph{deviance} (with null model choice), 
+\emph{plot} and \emph{summary}. Additionally, a score method is also included to extract either the analytic or numeric scores with the option of 
+also recalculating them for a new set of parameters. This is particularly useful when performing a Lagrange Multiplier (\emph{LM}) test which requires 
+the score of the fixed parameter. An example of this and additional functions are documented in the package help.\\
+Finally, it is up to the user to determine the adequacy of the estimated model. There are a lot of packages on CRAN which implement diagnostic tests, and
+the \verb@dbm@ package returns enough information in the estimated object (including the scores) in order to run most of the available tests. There are a
+number of important issues to keep in mind when estimating a model, including heteroscedasticity, partial or complete non-separation, and
+multi-collinearity, all of which are covered in standard textbooks and numerous articles. Particular care should also be taken to ensure that
+the explanatory variables are stationary.
+\subsection{Methods}
+The main methods for working with the returned estimation object after calling the \textbf{dbm} function are summarized in Table \ref{table:methods}.
+{\tiny
+\ctable[
+pos = h,
+cap     = {\textbf{dbm} class methods.},
+caption = {\textbf{dbm} class methods.},
+label   = {table:methods},
+center
+]
+{lcccccccc}
+{
+}{
+\FL
+\begin{tabular*}{1\textwidth}{@{\extracolsep{\fill}}lll}
+    \textbf{Method} & \textbf{Args} & \textbf{Description} \\
+    \hline
+    logLik & (object, ...) & Returns the log likelihood at the maximized optimal \\
+    coef  & (object, ...) & Returns the coefficient values (excluding any fixed parameters) \\
+    vcov  & (object, robust=FALSE, ...) & Returns the variance covariance matrix of the parameters \\
+    score & (object, pars=NULL, analytic=TRUE, ...) & Returns the score matrix (or calculates one using a new set of pars) \\
+    deviance & (object, null = FALSE, ...) & Extracts the deviance (or optionally the null deviance) \\
+    fitted & (object, ...) & Returns the estimated probability \\
+    residuals & (object, type, ...) & Returns the residuals (with option for type of residuals) \\
+    BIC   & (object, ...) & Returns the Bayesian Information Criterion \\
+    AIC   & (object, ...) & Returns the Akaike Information Criterion \\
+    summary & (object, ...) & Returns a summary of the estimated model \\
+    print & (x, digits, ...) & Prints the estimated model summary \\
+    model.matrix & (object, ...) & Returns the model matrix (including autoregressive data) \\
+    hat   & (x, ...) & Returns the hat matrix \\
+    hatvalues & (model, ...) & Returns the Pregibon leverage \\
+    plot  & (x, ...) & Plots of the estimated object \\
+    predict & (object, newdata = NULL, n.ahead=1, ...) & Prediction (including n.ahead iterated) \\
+    mfx   & (model, x.mean = TRUE, rev.dum = TRUE, ...) & Returns marginal effects \\
+\end{tabular*}
+\LL
+}}
+
+
+\section{Appendix: Analytic Derivatives}\label{sec:Appendix}
+The appendix provides a dry exposition of the analytic expressions for the derivatives used in the numerical
+optimization routine for the 3 link functions. The subscripts for the parameter lag orders and explanatory
+variables have been suppressed for ease and compactness of notation, and denote a lag-1 in all variables with
+one explanatory variable, but the results easily generalize to higher lags and k explanatory variables.
+The gradient formulae shown are for the basic model and do not include the \textbf{ecm} case nor the case of
+regularization (which are however implemented internally in the package since ver 1.0-1), and in any case require
+only simple modification.
+\subsection{Recursion Initialization}
+The recursion is initialized by setting:
+\begin{equation}\label{eq:rcs}
+{\pi _0} = \frac{{\omega  + \delta \bar y + \beta \bar x}}{{1 - \alpha }}
+\end{equation}
+where the bar over the variables denotes their unconditional mean. Therefore, at time $t_1$, ${\pi _1} = \omega  + \alpha {\pi _0}$, and the partial derivatives with respect to $\pi_1$ are:
+\begin{equation}\label{eq:rcsderiv}
+\begin{gathered}
+  \frac{{\partial {\pi _1}}}
+{{\partial \omega }} = \frac{\alpha }
+{{1 - \alpha }} + 1 \hfill \\
+  \frac{{\partial {\pi _1}}}
+{{\partial \beta }} = \frac{{\alpha \bar x}}
+{{1 - \alpha }} \hfill \\
+  \frac{{\partial {\pi _1}}}
+{{\partial \delta }} = \frac{{\alpha \bar y}}
+{{1 - \alpha }} \hfill \\
+  \frac{{\partial {\pi _1}}}
+{{\partial \alpha }} = {\pi _0} + \frac{{\alpha {\pi _0}}}
+{{1 - \alpha }} \hfill \\
+\end{gathered}
+\end{equation}
+\subsection{Logistic}
+The logistic link function, which gives rise to the \emph{logit} model, has the following log-likelihood function at time $t$ (maximization):
+\begin{equation}
+{l_t}\left( \theta  \right) = {y_t}\log \left( {\frac{1}
+{{1 + {e^{ - {\pi _t}}}}}} \right) + \left( {1 - {y_t}} \right)\log \left( {1 - \frac{1}
+{{1 + {e^{ - {\pi _t}}}}}} \right)
+\end{equation}
+The partial derivatives with respect to the log-likelihood are defined as follows:
+\begin{equation}
+\begin{gathered}
+  \frac{{\partial {l_t}}}
+{{\partial \omega }} = \frac{{\left( {{y_t} + {y_t}{{\text{e}}^{ - {\pi _t}}} - 1} \right)}}
+{{\left( {1 + {{\text{e}}^{ - {\pi _t}}}} \right)}}\left( {1 + \frac{{\partial {\pi _{t - 1}}\left( \theta  \right)}}
+{{\partial \omega }}} \right) \hfill \\
+  \frac{{\partial {l_t}}}
+{{\partial \beta }} = \frac{{\left( {{y_t} + {y_t}{{\text{e}}^{ - {\pi _t}}} - 1} \right)}}
+{{\left( {1 + {{\text{e}}^{ - {\pi _t}}}} \right)}}\left( {{x_{t - 1}} + \alpha \frac{{\partial {\pi _{t - 1}}\left( \theta  \right)}}
+{{\partial {x_{t - 1}}}}} \right) \hfill \\
+  \frac{{\partial {l_t}}}
+{{\partial \delta }} = \frac{{\left( {{y_t} + {y_t}{{\text{e}}^{ - {\pi _t}}} - 1} \right)}}
+{{\left( {1 + {{\text{e}}^{ - {\pi _t}}}} \right)}}\left( {{y_{t - 1}} + \alpha \frac{{\partial {\pi _{t - 1}}\left( \theta  \right)}}
+{{\partial {\delta _{t - 1}}}}} \right) \hfill \\
+  \frac{{\partial {l_t}}}
+{{\partial \alpha }} = \frac{{\left( {{y_t} + {y_t}{{\text{e}}^{ - {\pi _t}}} - 1} \right)}}
+{{\left( {1 + {{\text{e}}^{ - {\pi _t}}}} \right)}}\left( {{\pi _{t - 1}} + \alpha \frac{{\partial {\pi _{t - 1}}\left( \theta  \right)}}
+{{\partial \alpha }}} \right) \hfill \\
+\end{gathered}
+\end{equation}
+The ${\partial {\pi _{t - 1}}\left( \theta  \right)}$ is based on the initialization values and their partial derivatives given in Equation \ref{eq:rcsderiv}.
+\subsection{Gaussian}
+The Gaussian link function, which gives rise to the \emph{probit} model, has the following log-likelihood function at time $t$ (maximization):
+\begin{equation}
+{l_t}\left( \theta  \right) = {y_t}\ln \left( {\frac{1}
+{2} + \frac{1}
+{2}\,{\text{erf}}\left( {\frac{{{\pi _t}}}
+{{\sqrt 2 }}} \right)} \right) + \left( {1 - {y_y}} \right)\ln \left( {\frac{1}
+{2} - \frac{1}
+{2}\,{\text{erf}}\left( {\frac{{{\pi _t}}}
+{{\sqrt 2 }}} \right)} \right)
+\end{equation}
+where the error function $erf$ is used to approximate the Gaussian distribution. The recursion is initialized as in Equation \ref{eq:rcs}. The partial derivatives with respect to the log-likelihood are defined as follows:
+\begin{equation}
+\begin{gathered}
+  \frac{{\partial {l_t}}}
+{{\partial \omega }} = \frac{{{{\text{e}}^{ - 0.5\pi _t^2}}\sqrt 2 \left( {{\text{erf}}\left( { - 0.5\sqrt 2 \,{\pi _t}} \right) - 2\,{y_t}{\text{ + }}1} \right)}}
+{{\sqrt {\mathbf{\pi }} \left( {{\text{erf}}{{\left( { - 0.5\sqrt 2 {\pi _t}} \right)}^2} - 1} \right)}}\left( {1 + \alpha \frac{{\partial {\pi _{t - 1}}\left( \theta  \right)}}
+{{\partial \omega }}} \right) \hfill \\
+  \frac{{\partial {l_t}}}
+{{\partial \beta }} = \frac{{{{\text{e}}^{ - 0.5\pi _t^2}}\sqrt 2 \left( {{\text{erf}}\left( { - 0.5\sqrt 2 \,{\pi _t}} \right) - 2\,{y_t}{\text{ + }}1} \right)}}
+{{\sqrt {\mathbf{\pi }} \left( {{\text{erf}}{{\left( { - 0.5\sqrt 2 {\pi _t}} \right)}^2} - 1} \right)}}\left( {{x_{t - 1}} + \alpha \frac{{\partial {\pi _{t - 1}}\left( \theta  \right)}}
+{{\partial \beta }}} \right) \hfill \\
+  \frac{{\partial {l_t}}}
+{{\partial \delta }} = \frac{{{{\text{e}}^{ - 0.5\pi _t^2}}\sqrt 2 \left( {{\text{erf}}\left( { - 0.5\sqrt 2 \,{\pi _t}} \right) - 2\,{y_t}{\text{ + }}1} \right)}}
+{{\sqrt {\mathbf{\pi }} \left( {{\text{erf}}{{\left( { - 0.5\sqrt 2 {\pi _t}} \right)}^2} - 1} \right)}}\left( {{y_{t - 1}} + \alpha \frac{{\partial {\pi _{t - 1}}\left( \theta  \right)}}
+{{\partial \delta }}} \right) \hfill \\
+  \frac{{\partial {l_t}}}
+{{\partial \alpha }} = \frac{{{{\text{e}}^{ - 0.5\pi _t^2}}\sqrt 2 \left( {{\text{erf}}\left( { - 0.5\sqrt 2 \,{\pi _t}} \right) - 2\,{y_t}{\text{ + }}1} \right)}}
+{{\sqrt {\mathbf{\pi }} \left( {{\text{erf}}{{\left( { - 0.5\sqrt 2 {\pi _t}} \right)}^2} - 1} \right)}}\left( {{\pi _{t - 1}}\left( \theta  \right) + \alpha \frac{{\partial {\pi _{t - 1}}\left( \theta  \right)}}
+{{\partial \alpha }}} \right) \hfill \\
+\end{gathered}
+\end{equation}
+The ${\partial {\pi _{t - 1}}\left( \theta  \right)}$ is based on the initialization values and their partial derivatives given in Equation \ref{eq:rcsderiv}.
+\subsection{Generalized Logistic}
+The Generalized Logistic distribution allows for the asymmetric impact of the explanatory variables with the following distribution
+function:
+\begin{equation}
+\Phi \left( {{y_t}} \right) = {\left( {1 + {e^{ - {\pi_t}}}} \right)^{ - k}},
+\end{equation}
+with $k \in {\Re ^ + }$ and $\pi_t$ representing the dynamics given in Equation \ref{eq:dbm}. This has also been called the \emph{scobit}
+model\footnote{See for instance \cite{Zeileis2011} for \emph{one} implementation.} since it nests the logistic distribution when
+$k=1$.
+The log-likelihood to be maximized in the binary response model is then given by the following equation at time $t$:
+\begin{equation}
+{l_t}\left( \theta  \right) = {y_t}\log \left( {{{\left( {1 + {e^{ - {\pi _t}}}} \right)}^{ - k}}} \right) + \left( {1 - {y_t}} \right)\log \left( {1 - {{\left( {1 + {e^{ - {\pi _t}}}} \right)}^{ - k}}} \right)
+\end{equation}
+The partial derivatives with respect to the log-likelihood are defined as follows:
+\begin{equation}
+\begin{gathered}
+  \frac{{\partial {l_t}\left( \theta  \right)}}
+{{\partial \omega }} = \frac{{k{{\text{e}}^{ - {\pi _t}}}\left( {{{\text{e}}^{k{\pi _t}}} - {y_t}{{\left( {{\text{1 + }}{{\text{e}}^{{\pi _t}}}} \right)}^k}} \right)}}
+{{\left( {1 + {{\text{e}}^{ - {\pi _t}}}} \right)\left( {{{\text{e}}^{k{\pi _t}}} - {{\left( {{\text{1 + }}{{\text{e}}^{{\pi _t}}}} \right)}^k}} \right)}}\left( {1 + \alpha \frac{{\partial {\pi _{t - 1}}\left( \theta  \right)}}
+{{\partial \omega }}} \right) \hfill \\
+  \frac{{\partial {l_t}\left( \theta  \right)}}
+{{\partial \beta }} = \frac{{k{{\text{e}}^{ - {\pi _t}}}\left( {{{\text{e}}^{k{\pi _t}}} - {y_t}{{\left( {{\text{1 + }}{{\text{e}}^{{\pi _t}}}} \right)}^k}} \right)}}
+{{\left( {1 + {{\text{e}}^{ - {\pi _t}}}} \right)\left( {{{\text{e}}^{k{\pi _t}}} - {{\left( {{\text{1 + }}{{\text{e}}^{{\pi _t}}}} \right)}^k}} \right)}}\left( {{x_{t - 1}} + \alpha \frac{{\partial {\pi _{t - 1}}\left( \theta  \right)}}
+{{\partial \beta }}} \right) \hfill \\
+  \frac{{\partial {l_t}\left( \theta  \right)}}
+{{\partial \delta }} = \frac{{k{{\text{e}}^{ - {\pi _t}}}\left( {{{\text{e}}^{k{\pi _t}}} - {y_t}{{\left( {{\text{1 + }}{{\text{e}}^{{\pi _t}}}} \right)}^k}} \right)}}
+{{\left( {1 + {{\text{e}}^{ - {\pi _t}}}} \right)\left( {{{\text{e}}^{\text{k}}}{\pi _{\text{t}}}{\text{ - }}{{\left( {{\text{1 + }}{{\text{e}}^{{\pi _{\text{t}}}}}} \right)}^{\text{k}}}} \right)}}\left( {{y_{t - 1}} + \alpha \frac{{\partial {\pi _{t - 1}}\left( \theta  \right)}}
+{{\partial \delta }}} \right) \hfill \\
+  \frac{{\partial {l_t}\left( \theta  \right)}}
+{{\partial \alpha }} = \frac{{k{{\text{e}}^{ - {\pi _t}}}\left( {{{\text{e}}^{k{\pi _t}}} - {y_t}{{\left( {{\text{1 + }}{{\text{e}}^{{\pi _t}}}} \right)}^k}} \right)}}
+{{\left( {1 + {{\text{e}}^{ - {\pi _t}}}} \right)\left( {{{\text{e}}^{k{\pi _t}}} - {{\left( {{\text{1 + }}{{\text{e}}^{{\pi _t}}}} \right)}^k}} \right)}}\left( {{\pi _{t - 1}}\left( \theta  \right) + \alpha \frac{{\partial {\pi _{t - 1}}\left( \theta  \right)}}
+{{\partial \alpha }}} \right) \hfill \\
+  \frac{{\partial {l_t}\left( \theta  \right)}}
+{{\partial k}} =  - \frac{{\log \left( {1 + {{\text{e}}^{ - {\pi _t}}}} \right)\left( {{{\text{e}}^{k{\pi _t}}} - {y_t}{{\left( {{\text{1 + }}{{\text{e}}^{{\pi _t}}}} \right)}^k}} \right)}}
+{{{{\text{e}}^{k{\pi _t}}} - {{\left( {{\text{1 + }}{{\text{e}}^{{\pi _t}}}} \right)}^k}}} \hfill \\
+\end{gathered}
+\end{equation}
+The ${\partial {\pi _{t - 1}}\left( \theta  \right)}$ is based on the initialization values and their partial derivatives given in Equation \ref{eq:rcsderiv}.
