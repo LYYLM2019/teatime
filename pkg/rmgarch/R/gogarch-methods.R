@@ -866,7 +866,13 @@ rcoskew = function(object, ...)
 		# convert to moments since the standardized moments do not retain their 
 		# geometric properties in transformation
 		yskew = matrix(S3, ncol = NCOL(sig), nrow = NROW(sig), byrow = TRUE)*(sig^3)
-		xs = .Call("gogarchCS", S = yskew, A = A, PACKAGE = "rmgarch")
+		Z = as(t(A), "dgeMatrix")
+		rhs = list(Matrix(t(A)), Z)
+		for(i in 1:n.roll){
+			K = .coskew.ind(yskew[i,])
+			lhs = A%*%K
+			xs[,,i] = fast_kron_M(rhs, lhs, m, p=2)
+		}		
 		if(standardize){
 			for(i in 1:n.roll){
 				SD = sqrt(diag(A%*%diag(sig[i,]^2)%*%t(A)))
@@ -907,7 +913,13 @@ rcoskew = function(object, ...)
 		# convert to moments since the standardized moments do not retain their 
 		# geometric properties in transformation
 		yskew = matrix(S3, ncol = NCOL(sig), nrow = NROW(sig), byrow = TRUE)*(sig^3)
-		xs = .Call("gogarchCS", S = yskew, A = A, PACKAGE = "rmgarch")
+		Z = as(t(A), "dgeMatrix")
+		rhs = list(Matrix(t(A)), Z)
+		for(i in 1:n){
+			K = .coskew.ind(yskew[i,])
+			lhs = A%*%K
+			xs[,,i] = fast_kron_M(rhs, lhs, m, p=2)
+		}
 		if(standardize){
 			for(i in 1:n){
 				SD = sqrt(diag(A%*%diag(sig[i,]^2)%*%t(A)))
@@ -974,7 +986,13 @@ setMethod("rcoskew", signature(object = "goGARCHroll"), .rcoskewroll)
 	# convert to moments as since the standardized moments do not retain their geometric properties in transformation
 	sig = sig[from:to,,drop = FALSE]
 	yskew = matrix(S3, ncol = NCOL(sig), nrow = NROW(sig), byrow = TRUE)*(sig^3)
-	xs = .Call("gogarchCS", S = yskew, A = A, PACKAGE = "rmgarch")
+	Z = as(t(A), "dgeMatrix")
+	rhs = list(Matrix(t(A)), Z)
+	for(i in 1:n.roll){
+		K = .coskew.ind(yskew[i,])
+		lhs = A%*%K
+		xs[,,i] = fast_kron_M(rhs, lhs, m, p=2)
+	}
 	if(standardize){
 		for(i in 1:n){
 			SD = sqrt(diag(A%*%diag(sig[i,]^2)%*%t(A)))
@@ -1019,7 +1037,13 @@ rcokurt = function(object, ...)
 		# convert to moments since the standardized moments do not retain their 
 		# geometric properties in transformation
 		ykurt = matrix(S4, ncol = NCOL(sig), nrow = NROW(sig), byrow = TRUE)*(sig^4)
-		xs = .Call("gogarchCK", K = ykurt, S = sig^2, A = A, PACKAGE="rmgarch")
+		Z = as(kronecker(t(A), t(A)), "dgeMatrix")
+		rhs = list(Matrix(t(A)), Z)
+		for(i in 1:n.roll){
+			K = .cokurt.ind(sig[i,]^2, ykurt[i,])
+			lhs = A%*%K
+			xs[,,i] = fast_kron_M(rhs, lhs, m, p=3)
+		}
 		if(standardize){
 			for(i in 1:n.roll){
 				SD = sqrt(diag(A%*%diag(sig[i,]^2)%*%t(A)))
@@ -1063,7 +1087,13 @@ rcokurt = function(object, ...)
 		}
 		# convert to moments as since the standardized moments do not retain their geometric properties in transformation
 		ykurt = matrix(S4, ncol = NCOL(sig), nrow = NROW(sig), byrow = TRUE)*(sig^4)
-		xs = .Call("gogarchCK", K = ykurt, S = sig^2, A = A, PACKAGE="rmgarch")
+		Z = as(kronecker(t(A), t(A)), "dgeMatrix")
+		rhs = list(Matrix(t(A)), Z)
+		for(i in 1:n){
+			K = .cokurt.ind(sig[i,]^2, ykurt[i,])
+			lhs = A%*%K
+			xs[,,i] = fast_kron_M(rhs, lhs, m, p=3)
+		}
 		if(standardize){
 			for(i in 1:n){
 				SD = sqrt(diag(A%*%diag(sig[i,]^2)%*%t(A)))
@@ -1130,7 +1160,13 @@ setMethod("rcokurt", signature(object = "goGARCHroll"), .rcokurtroll)
 	# convert to moments as since the standardized moments do not retain their geometric properties in transformation
 	sig = sig[from:to,,drop = FALSE]
 	ykurt = matrix(S4, ncol = NCOL(sig), nrow = NROW(sig), byrow = TRUE)*(sig^4)
-	xs = .Call("gogarchCK", K = ykurt, S = sig^2, A = A, PACKAGE="rmgarch")
+	Z = as(kronecker(t(A), t(A)), "dgeMatrix")
+	rhs = list(Matrix(t(A)), Z)
+	for(i in 1:n){
+		K = .cokurt.ind(sig[i,]^2, ykurt[i,])
+		lhs = A%*%K
+		xs[,,i] = fast_kron_M(rhs, lhs, m, p=3)
+	}	
 	if(standardize){
 		for(i in 1:n){
 			SD = sqrt(diag(A%*%diag(sig[i,]^2)%*%t(A)))
@@ -1359,6 +1395,9 @@ setMethod("nportmoments", signature(object = "goGARCHfft"), .nportmoments)
 			if(is.na(m1)){
 				nmom[i,2:4] = NA
 			} else{
+				fm1 = function(x) x * dmad(x)
+				# its more accurate to evaluate m1
+				m1 = integrate(fm1, -Inf, Inf, subdivisions = subdivisions, rel.tol = rel.tol, stop.on.error = FALSE)$value
 				fm2 = function(x) ((x-m1)^2) * dmad(x)
 				nmom[i,2] = sqrt(integrate(fm2, -Inf, Inf, subdivisions = subdivisions, rel.tol = rel.tol, stop.on.error = FALSE)$value)
 				fm3 = function(x) ((x-m1)^3) * dmad(x)

@@ -23,8 +23,6 @@
 RcppExport SEXP gogarchSigma(SEXP S, SEXP A);
 RcppExport SEXP gogarchCov(SEXP S, SEXP A);
 RcppExport SEXP gogarchCor(SEXP S, SEXP A);
-RcppExport SEXP gogarchCS(SEXP S, SEXP A);
-RcppExport SEXP gogarchCK(SEXP K, SEXP S, SEXP A);
 RcppExport SEXP Cov2Cor(SEXP , SEXP );
 RcppExport SEXP ArrayDiag(SEXP , SEXP );
 RcppExport SEXP Cov2Res(SEXP , SEXP , SEXP );

@@ -16,7 +16,7 @@
 #################################################################################
 
 
-#################################################################################
+#---------------------------------------------------------------------------------
 # Locally imported copy of "klin.eval" from the klin package
 incseq = function (a, b) 
 {
@@ -42,23 +42,18 @@ incseq = function (a, b)
 	}
 	return(Matrix::as.vector(X))
 }
-#################################################################################
-
+#---------------------------------------------------------------------------------
+fast_kron_M = function(rhs, lhs, n, p=3)
+{
+	Y = lapply(1:n, function(i){.klin.eval(rhs, lhs[i,], transpose = TRUE)})
+	M = matrix(unlist(Y), nrow = n, ncol = n^p, byrow=TRUE)	
+	return(M)
+}
 
 .kappaGH <-function(x, lambda = 1)
 {    
-	# A function implemented by Diethelm Wuertz
-	
-	# Description:
-	#   Returns modified Bessel function ratio
-	
-	# FUNCTION:
-	
-	# Check:
 	stopifnot(x >= 0)
 	stopifnot(length(lambda) == 1)
-	
-	# Ratio:
 	if (lambda == -0.5) {
 		# NIG:
 		kappa = 1/x
@@ -68,32 +63,17 @@ incseq = function (a, b)
 					besselK(x, lambda+1, expon.scaled = TRUE) /
 					besselK(x, lambda, expon.scaled = TRUE) ) / x
 	}
-	
-	# Return Value:
-	kappa
+	return(kappa)
 }
 # ------------------------------------------------------------------------------
 .deltaKappaGH<-function(x, lambda = 1)
 {
-	# A function implemented by Diethelm Wuertz
-	
-	# Description:
-	#   Returns difference of Bessel functions ratios
-	
-	# FUNCTION:
-	
-	# Difference in Ratios:
 	if (lambda == -0.5) {
-		# NIG:
-		# Replace this with the recursion relation ...
 		deltaKappa = .kappaGH(x, lambda+1) - .kappaGH(x, lambda)
 	} else {
-		# GH:
 		deltaKappa = .kappaGH(x, lambda+1) - .kappaGH(x, lambda)
 	}
-	
-	# Return Value:
-	deltaKappa
+	return(deltaKappa)
 }
 # ------------------------------------------------------------------------------
 .paramGH = function(rho = 0 , zeta = 1, lambda = 1)
@@ -124,8 +104,6 @@ incseq = function (a, b)
 	colnames(ghyppars) = c("alpha", "beta", "delta", "mu", "lambda")
 	return(ghyppars)
 }
-
-
 .nigscale2 = function(mu, sigma, nigalpha, nigbeta, nigdelta, nigmu)
 {
 	xdensity = matrix(0, ncol = 4, nrow = length(sigma))
@@ -137,8 +115,6 @@ incseq = function (a, b)
 	colnames(xdensity) = c("alpha", "beta", "delta", "mu")
 	return(xdensity)
 }
-
-
 .nigscale = function(mu, sigma, skew, shape)
 {
 	nigpars = t(apply(cbind(skew, shape), 1, FUN=function(x) .paramGH(rho = x[1], zeta = x[2], lambda = -0.5)))

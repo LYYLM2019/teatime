@@ -1,3 +1,14 @@
+2013-11-15 Alexios Ghalanos <alexios@4dscape.com>
+	* DESCRIPTION (Version): New version is 1.2-4.
+	* Implemented very fast flattened tensor indexing for
+	the gogarch higher co-moment matrices using analytic
+	relationship for coordinates of pairs {i=j,k=l}, leading
+	to a 10x speed increase.
+	* Huge efficiency gains (memory management) from using 
+	the klin functionality for kronecker multiplication of 
+	the very large co-moment matrices.
+	
+
 2013-09-02 Alexios Ghalanos <alexios@4dscape.com>
 	* DESCRIPTION (Version): New version is 1.2-3.
 	* replaced estimation of Kendall's tau with cor.fk function of pcaPP
