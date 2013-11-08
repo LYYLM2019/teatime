@@ -29,7 +29,7 @@ maintenance and use, both of which are now hosted on google code.
 Package: \tab rugarch\cr
 Type: \tab Package\cr
 Version: \tab 1.2-9\cr
-Date: \tab 2013-10-28\cr
+Date: \tab 2013-11-28\cr
 License: \tab GPL\cr
 LazyLoad: \tab yes\cr
 Depends: \tab R (>= 2.10), methods\cr

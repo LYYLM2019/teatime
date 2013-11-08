@@ -1,7 +1,9 @@
-2013-10-28  Alexios Ghalanos <alexios@4dscape.com>
+2013-11-28  Alexios Ghalanos <alexios@4dscape.com>
 	* DESCRIPTION (Version): New version is 1.2-9.
 	* Fixed the stationarity condition of the E-GARCH model for the case when p>1,
 	and changed default lower bound on beta to be -1.
+	* Fix to the likelihood summation to take into account the first value of the 
+	standardized residual (was previously set to zero except for the fGARCH model).
 	
 
 2013-08-30  Alexios Ghalanos <alexios@4dscape.com>

@@ -258,8 +258,7 @@
 	# 1 = norm, 2=snorm, 3=std, 4=sstd, 5=ged, 6=sged, 7=nig
 	dist = model$modeldesc$distno
 	hm = arglist$tmph
-	rx = .arfimaxfilter(modelinc[1:21], ipars[,1], idx, mexdata = mexdata, 
-			h = hm, data = data, N = N)
+	rx = .arfimaxfilter(modelinc[1:21], ipars[,1], idx, mexdata = mexdata, h = hm, data = data, N = N)
 	res = rx$res
 	zrf = rx$zrf
 	res[is.na(res) | !is.finite(res) | is.nan(res)] = 0

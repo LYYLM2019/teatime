@@ -1163,7 +1163,7 @@
 		}
 		z[1:m, 1:m.sim] = preres[1:m]/presigma[1:m]
 		z[is.na(z) | is.nan(z) | !is.finite(z)] = 0
-		res = c(preres, rep(0, n))	
+		res = c(preres, rep(0, n))
 		ans1 = try(.C("sgarchsimC", model = as.integer(modelinc[1:21]), pars = as.double(ipars[,1]), idx = as.integer(idx[,1]-1), 
 						h = as.double(h), z = as.double(z[,i]), res = as.double(res), e = as.double(res*res),
 						vexdata = as.double(vexsim[[i]]), T = as.integer(n+m), m = as.integer(m), PACKAGE = "rugarch"), silent = TRUE)
