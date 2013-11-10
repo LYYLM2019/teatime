@@ -496,17 +496,17 @@
 	fcreq = ifelse(ns >= (n.ahead+n.roll), n.ahead+n.roll, ns)
 	fspec = acdspec(variance.model = list(model = model$vmodel$model, 
 					garchOrder = model$vmodel$garchOrder, 
-					external.regressors = model$modeldata$vexdata, variance.targeting = FALSE), 
-			mean.model = list(armaOrder = model$mmodel$armaOrder, 
-					include.mean = model$mmodel$include.mean, archm = as.logical(modelinc[5]), 
-					arfima = as.logical(modelinc[4]), external.regressors = model$modeldata$mexdata), 
-			distribution.model = list(model = model$dmodel$model, 
-					skewOrder = model$dmodel$skewOrder, skewshock = model$dmodel$skewshock, 
-					skewmodel = model$dmodel$skewmodel,
-					skew.regressors = model$modeldata$skxdata,
-					shapeOrder = model$dmodel$shapeOrder, shapeshock = model$dmodel$shapeshock, 
-					shapemodel = model$dmodel$shapemodel,
-					shape.regressors = model$modeldata$shxdata, exp.rate=model$sbounds[5]))
+				external.regressors = model$modeldata$vexdata, variance.targeting = FALSE), 
+		mean.model = list(armaOrder = model$mmodel$armaOrder, 
+				include.mean = model$mmodel$include.mean, archm = as.logical(modelinc[5]), 
+				arfima = as.logical(modelinc[4]), external.regressors = model$modeldata$mexdata), 
+		distribution.model = list(model = model$dmodel$model, 
+				skewOrder = model$dmodel$skewOrder, skewshock = model$dmodel$skewshock, 
+				skewmodel = model$dmodel$skewmodel,
+				skew.regressors = model$modeldata$skxdata,
+				shapeOrder = model$dmodel$shapeOrder, shapeshock = model$dmodel$shapeshock, 
+				shapemodel = model$dmodel$shapemodel,
+				shape.regressors = model$modeldata$shxdata, exp.rate=model$sbounds[5]))
 	setfixed(fspec)<-as.list(fit@model$pars[fit@model$pars[,3]==1,1])
 	setbounds(fspec)<-list(shape = fit@model$sbounds[3:4], skew = fit@model$sbounds[1:2])
 	fspec@model$modeldata$mexdata = mxf
@@ -598,7 +598,7 @@
 			}
 		}
 	}
-	
+
 	fcst = list()
 	fcst$n.ahead = n.ahead
 	fcst$n.roll = n.roll
@@ -772,12 +772,12 @@
 # SECTION ACD roll
 #---------------------------------------------------------------------------------
 .acdroll = function(spec, data, n.ahead = 1, forecast.length = 500, n.start = NULL, 
-		refit.every = 25, refit.window = c("recursive", "moving"), 
-		window.size = NULL, solver = "ucminf", fit.control = list(), 
-		solver.control = list(), calculate.VaR = TRUE, VaR.alpha = c(0.01, 
-				0.05), cluster = NULL, keep.coef = TRUE, fixARMA = TRUE, fixGARCH = TRUE, 
-		fixUBShape = TRUE, UBShapeAdd = 0, fixGHlambda = TRUE, compareGARCH = c("LL", "none"),
-		...)
+    refit.every = 25, refit.window = c("recursive", "moving"), 
+    window.size = NULL, solver = "ucminf", fit.control = list(), 
+    solver.control = list(), calculate.VaR = TRUE, VaR.alpha = c(0.01, 
+        0.05), cluster = NULL, keep.coef = TRUE, fixARMA = TRUE, fixGARCH = TRUE, 
+	fixUBShape = TRUE, UBShapeAdd = 0, fixGHlambda = TRUE, compareGARCH = c("LL", "none"),
+	...)
 {
 	tic = Sys.time()
 	compareGARCH = compareGARCH[1]
@@ -1074,7 +1074,7 @@
 			cf = vector(mode = "list", length = m)
 			for(i in 1:m){
 				cf[[i]]$index = index[tail(rollind[[i]],1) - out.sample[i]]
-				cf[[i]]$coef = tmp[[i]]$cf
+			 cf[[i]]$coef = tmp[[i]]$cf
 			}
 		} else{
 			cf = NULL

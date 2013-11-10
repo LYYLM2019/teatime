@@ -13,18 +13,20 @@ events making their identification with a particular law of motion difficult,
 the optimization of these models is particularly hard. The racd package provides
 for a number of different dynamics for the skew and shape parameters, and a number
 of different solvers and approaches to solving such problems and described in more
-details in the package's vignette.
+details in the package's vignette. The multivariate independent factor ACD model
+(IFACD) of Ghalanos et al (2014) is also included along with methods similar to
+those of the GO-GARCH model in the rmgarch package.
 }
 \details{
 \tabular{ll}{
 Package: \tab racd\cr
 Type: \tab Package\cr
-Version: \tab 1.0-3\cr
-Date: \tab 2013-08-28\cr
+Version: \tab 1.0-2\cr
+Date: \tab 2013-11-30\cr
 License: \tab GPL\cr
 LazyLoad: \tab yes\cr
-Depends: \tab R (>= 2.10), methods, rugarch\cr
-Imports: \tab xts, Rsolnp, ucminf, numDeriv, zoo, parma\cr}
+Depends: \tab methods, rugarch\cr
+Imports: \tab xts, Rsolnp, ucminf, numDeriv, zoo, parma, Matrix\cr}
 The racd package builds on the rugarch package and imports many of the methods
 used there. In terms of GARCH models, only the simple GARCH (sGARCH) and 
 component GARCH (csGARCH) and multiplicative component GARCH (mcsGARCH) are used, 
@@ -34,11 +36,12 @@ variance targeting near impossible except for these models.
 }
 \section{How to cite this package}{
   Whenever using this package, please cite as\cr
+
  \preformatted{@Manual{Ghalanos_2013,
  author       = {Alexios Ghalanos},
  title        = {{racd}: Autoregressive Conditional Density Models.},
  year         = {2013},
- note 	      = {R package version 1.0-3.},}}
+ note 	      = {R package version 1.0-2.},}}
 \emph{}
 }
 \section{License}{

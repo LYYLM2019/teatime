@@ -93,7 +93,7 @@
 	T = x@model$modeldata$T
 	insample = 1:T
 	xseries = x@model$modeldata$data[insample]
-	xdates  = x@model$modeldata$index[insample]
+	xdates  = x@model$modeldata$dates[insample]
 	distribution = x@model$dmodel$model
 	xcmu 	= fitted(x)
 	xsigma 	= sigma(x)
@@ -117,7 +117,7 @@
 	vmodel  = x@model$vmodel$model
 	T = x@model$modeldata$T
 	insample = 1:T
-	xdates  = x@model$modeldata$index[insample]
+	xdates  = x@model$modeldata$dates[insample]
 	y 	= sigma(x)
 	plot(xdates, y, type = "l", col = "steelblue", ylab = "Volatility", xlab="Time", main = "Conditional SD", cex.main = 0.8)
 	mtext(paste("racd"), side = 4, adj = 0, padj=0, col = "gray", cex = 0.6)
@@ -132,7 +132,7 @@
 	skmodel  = x@model$dmodel$skewmodel
 	T = x@model$modeldata$T
 	insample = 1:T
-	xdates  = x@model$modeldata$index[insample]
+	xdates  = x@model$modeldata$dates[insample]
 	y 	= skew(x)
 	plot(xdates, y, type = "l", col = "steelblue", ylab = "Skew", xlab="Time", cex.lab = 0.9, cex.axis = 0.9,
 			main = paste("Conditional Skew [", toupper(distribution),"]", sep=""), cex.main = 0.8)
@@ -148,7 +148,7 @@
 	shmodel  = x@model$dmodel$shapemodel
 	T = x@model$modeldata$T
 	insample = 1:T
-	xdates  = x@model$modeldata$index[insample]
+	xdates  = x@model$modeldata$dates[insample]
 	y 	= shape(x)
 	plot(xdates, y, type = "l", col = "steelblue", ylab = "Shape", xlab="Time", cex.lab = 0.9, cex.axis = 0.9,
 			main = paste("Conditional Shape [", toupper(distribution),"]", sep=""), cex.main = 0.8)
@@ -163,7 +163,7 @@
 	distribution = x@model$dmodel$model
 	T = x@model$modeldata$T
 	insample = 1:T
-	xdates  = x@model$modeldata$index[insample]
+	xdates  = x@model$modeldata$dates[insample]
 	sk = skew(x) 
 	sh = shape(x)
 	S = dskewness(distribution, skew = sk, shape = sh)
@@ -180,7 +180,7 @@
 	distribution = x@model$dmodel$model
 	T = x@model$modeldata$T
 	insample = 1:T
-	xdates  = x@model$modeldata$index[insample]
+	xdates  = x@model$modeldata$dates[insample]
 	sk = skew(x) 
 	sh = shape(x)
 	K = dkurtosis(distribution, skew = sk, shape = sh)

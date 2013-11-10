@@ -47,11 +47,12 @@ spec = acdspec(variance.model=list(variance.targeting = FALSE),
 mean.model=list(armaOrder=c(1,1)),distribution.model=list(model = "jsu",
 skewOrder=c(1,1,0), shapeOrder=c(1,1,0)))
 setfixed(spec)<-as.list(coef(fit))
-# fit@fit$skhEst contains the untransformed recursion starting values for 
-# the skew and shape dynamics. fit@model$sbounds contain the: 
-# [skew.LB, skew.UB, shape.LB, shape.UB, shape.rate(for exponential transformation)]
-# skew0 and shape0 take the transformed values (so use the functions logtransform 
-# and exptransform)
+# fit@fit$skhEst contains the untransformed recursion 
+# starting values for the skew and shape dynamics.
+# fit@model$sbounds contain the: [skew.LB, skew.UB, shape.LB, 
+# shape.UB, shape.rate(for exponential transformation)]
+# skew0 and shape0 take the transformed values (so use the 
+# functions logtransform and exptransform)
 filt = acdfilter(spec, sp500ret, skew0 = logtransform(fit@fit$skhEst[1], 
 fit@model$sbounds[1],fit@model$sbounds[2]), 
 shape0 = exptransform(fit@fit$skhEst[2], fit@model$sbounds[3], 

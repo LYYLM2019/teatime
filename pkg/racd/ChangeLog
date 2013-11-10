@@ -1,13 +1,6 @@
-2013-10-28  Alexios Ghalanos <alexios@4dscape.com>
-* DESCRIPTION (Version): First version is 1.0-3
-* Fixes to cleanly build.
-* Added multi-type methods.
-
-2013-10-09  Alexios Ghalanos <alexios@4dscape.com>
+2013-11-30  Alexios Ghalanos <alexios@4dscape.com>
 * DESCRIPTION (Version): First version is 1.0-2
 * Numerous corrections and bug fixes.
-* Additional specification based dispatch method for 
-the forecast routine.
 
 2013-05-15  Alexios Ghalanos <alexios@4dscape.com>
 * DESCRIPTION (Version): First version is 1.0-1

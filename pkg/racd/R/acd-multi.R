@@ -1,14 +1,14 @@
 #################################################################################
 ##
-##   R package racd by Alexios Ghalanos Copyright (C) 2008-2013.
-##   This file is part of the R package racd.
+##   R package rugarch by Alexios Ghalanos Copyright (C) 2008-2013.
+##   This file is part of the R package rugarch.
 ##
-##   The R package racd is free software: you can redistribute it and/or modify
+##   The R package rugarch is free software: you can redistribute it and/or modify
 ##   it under the terms of the GNU General Public License as published by
 ##   the Free Software Foundation, either version 3 of the License, or
 ##   (at your option) any later version.
 ##
-##   The R package racd is distributed in the hope that it will be useful,
+##   The R package rugarch is distributed in the hope that it will be useful,
 ##   but WITHOUT ANY WARRANTY; without even the implied warranty of
 ##   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 ##   GNU General Public License for more details.
@@ -82,18 +82,18 @@ setMethod("acdmultispec",  signature(speclist = "vector"), definition = .multisp
 	if( !is.null(cluster) ){
 		clusterEvalQ(cluster, library(rugarch))
 		clusterExport(cluster, c("multispec", "data", "out.sample", "solver", 
-						"solver.control", "fit.control"), envir = environment())
-		fitlist = parLapply(cluster, as.list(1:n), fun = function(i){
-					acdfit(spec = multispec@spec[[i]], data = data[, i, drop = FALSE], 
-							out.sample = out.sample[i], solver = solver, 
-							solver.control = solver.control, fit.control = fit.control)
-				})
-	} else{
-		fitlist = lapply(as.list(1:n), FUN = function(i){
-					acdfit(spec = multispec@spec[[i]], data = data[, i, drop = FALSE], 
-							out.sample = out.sample[i], solver = solver, 
-							solver.control = solver.control, fit.control = fit.control)
-				})
+							"solver.control", "fit.control"), envir = environment())
+			fitlist = parLapply(cluster, as.list(1:n), fun = function(i){
+						acdfit(spec = multispec@spec[[i]], data = data[, i, drop = FALSE], 
+								out.sample = out.sample[i], solver = solver, 
+								solver.control = solver.control, fit.control = fit.control)
+					})
+		} else{
+			fitlist = lapply(as.list(1:n), FUN = function(i){
+						acdfit(spec = multispec@spec[[i]], data = data[, i, drop = FALSE], 
+								out.sample = out.sample[i], solver = solver, 
+								solver.control = solver.control, fit.control = fit.control)
+					})
 	}
 	# converged: print
 	desc = list()
@@ -258,12 +258,12 @@ setMethod("multifilter",  signature(multifitORspec = "ACDmultispec"), definition
 				})
 	} else{
 		for(i in 1:n){
-			forecastlist[[i]] = acdforecast(fitORspec = multispec@spec[[i]], data = data[,i],
-					out.sample = out.sample[i], n.ahead = n.ahead[1], n.roll = n.roll, 
-					external.forecasts = external.forecasts, 
-					m.sim = m.sim, skew0 = if(useskew0) skew0[i] else NULL, 
-					shape0 = if(useshape0) shape0[i] else NULL)
-		}
+		forecastlist[[i]] = acdforecast(fitORspec = multispec@spec[[i]], data = data[,i],
+							out.sample = out.sample[i], n.ahead = n.ahead[1], n.roll = n.roll, 
+							external.forecasts = external.forecasts, 
+							m.sim = m.sim, skew0 = if(useskew0) skew0[i] else NULL, 
+							shape0 = if(useshape0) shape0[i] else NULL)
+				}
 	}
 	desc = list()
 	desc$type = "equal"

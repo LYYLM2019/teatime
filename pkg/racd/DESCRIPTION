@@ -1,13 +1,13 @@
 Package: racd
 Type: Package
 Title: Autoregressive Conditional Density Models
-Version: 1.0-3
-Date: 2013-10-28
+Version: 1.0-2
+Date: 2013-11-30
 Author: Alexios Ghalanos <alexios@4dscape.com>
 Maintainer: Alexios Ghalanos <alexios@4dscape.com>
-Depends: R (>= 2.10), methods, rugarch
-Imports: xts, Rsolnp, ucminf, numDeriv, zoo, parma
+Depends: methods, rugarch
+Imports: xts, Rsolnp, ucminf, numDeriv, zoo, parma, Matrix
 Description: Time Varying Higher Moment Models
-Collate: acd-classes.R acd-dbounds.R acd-solvers.R acd-startpars.R acd-helperfn.R acd-sacd.R acd-csacd.R acd-mcsacd.R acd-multi.R acd-main.R acd-plots.R acd-methods.R zzz.R
+Collate: acd-classes.R acd-dbounds.R acd-solvers.R acd-startpars.R acd-helperfn.R acd-sacd.R acd-csacd.R acd-mcsacd.R acd-main.R acd-plots.R acd-multi.R acd-methods.R zzz.R
 LazyLoad: yes
 License: GPL-3

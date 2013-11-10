@@ -27,8 +27,8 @@
 	arglist$returnType = "llh"
 	fit = vector(mode = "list")
 	if(is.null(hess)){
-		#fit$hessian = rugarch:::.hessian2sidedcpp(f, ipars[estidx, 1], arglist = arglist)
-		fit$hessian = hessian(f, x = ipars[estidx, 1], arglist = arglist)
+		fit$hessian = rugarch:::.hessian2sidedcpp(f, ipars[estidx, 1], arglist = arglist)
+		#fit$hessian = numDeriv::hessian(f, x = ipars[estidx, 1], arglist = arglist)
 		E = eigen(fit$hessian)$values
 		# approx. number of decimal places lost to roundoff/numerical estimation error
 		condH = log10(max(E)/min(E))
@@ -90,7 +90,7 @@
 			arglist$returnType = "LHT"
 			tmp = rugarch:::robustvcv(fun = f, pars = ipars[estidx, 1], nlag = 0, hess = fit$hessian, n = T, arglist = arglist)
 			fit$robust.cvar = tmp$vcv
-			fit$scores = jacobian(func = f, x = ipars[estidx, 1], method="Richardson", method.args=list(), arglist = arglist) 
+			fit$scores = numDeriv::jacobian(func = f, x = ipars[estidx, 1], method="Richardson", method.args=list(), arglist = arglist) 
 			colnames(fit$scores) = names(ipars[estidx, 1])
 			fit$se.coef = sqrt(diag(abs(fit$cvar)))
 			fit$tval = fit$coef[-fixed]/fit$se.coef
@@ -142,7 +142,7 @@
 			arglist$returnType = "LHT"
 			tmp = rugarch:::robustvcv(fun = f, pars = ipars[estidx,1], nlag = nlag, hess = fit$hessian, n = T, arglist = arglist)
 			fit$robust.cvar = tmp$vcv
-			fit$scores = jacobian(func = f, x = ipars[estidx, 1], method="Richardson", method.args=list(), arglist = arglist) 
+			fit$scores = numDeriv::jacobian(func = f, x = ipars[estidx, 1], method="Richardson", method.args=list(), arglist = arglist) 
 			colnames(fit$scores) = names(ipars[estidx, 1])
 			fit$se.coef = sqrt(diag(abs(fit$cvar)))
 			fit$tval = fit$coef/fit$se.coef

@@ -11,6 +11,7 @@
 \alias{skew,ACDroll-method}
 \alias{skewness,ACDroll-method}
 \alias{shape,ACDroll-method}
+\alias{sigma,ACDroll-method}
 \alias{kurtosis,ACDroll-method}
 \alias{show,ACDroll-method}
 \title{class: ACD Rolling Forecast Class}
@@ -40,7 +41,8 @@
 	\item{pit}{\code{signature(object = "ACDroll")}: 
 	Calculates and returns the conditional probability integral transform given the 
 	realized data and forecast density.}
-	 \item{skew}{\code{signature(object = "ACDroll")}: conditional skew. }
+	\item{skew}{\code{signature(object = "ACDroll")}: conditional skew. }
+	\item{sigma}{\code{signature(object = "ACDroll")}: conditional volatility.}
     \item{shape}{\code{signature(object = "ACDroll")}: conditional shape. }
     \item{skewness}{\code{signature(object = "ACDroll")}: conditional skewness. }    
     \item{kurtosis}{\code{signature(object = "ACDroll")}: conditional excess kurtosis.}

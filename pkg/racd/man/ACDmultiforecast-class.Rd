@@ -1,32 +1,44 @@
 \name{ACDmultiforecast-class}
+\Rdversion{1.1}
 \docType{class}
 \alias{ACDmultiforecast-class}
-\alias{sigma,ACDmultiforecast-method}
 \alias{fitted,ACDmultiforecast-method}
-\alias{skew,ACDmultiforecast-method}
 \alias{shape,ACDmultiforecast-method}
+\alias{sigma,ACDmultiforecast-method}
+\alias{skew,ACDmultiforecast-method}
 \title{class: Univariate ACD Multiple Forecast Class}
-\description{Class for the univariate ACD Multiple forecast.}
-\section{Objects from the Class}{A virtual Class: No objects may be created from it.}
-\section{Methods}{
-\describe{
-  \item{sigma}{\code{signature(x = "ACDmultiforecast")}: 
-   		extracts the n.ahead by (n.roll+1) by n.assets array of conditional sigma 
-   		forecasts.}
- \item{fitted}{\code{signature(x = "ACDforecast")}: 
-     extracts the n.ahead by (n.roll+1) by n.assets array of conditional mean
-   		forecasts.}
-  \item{skew}{\code{signature(x = "ACDforecast")}: 
-     extracts the n.ahead by (n.roll+1) by n.assets array of conditional skew
-   		forecasts.}
-  \item{shape}{\code{signature(x = "ACDforecast")}:
-     extracts the n.ahead by (n.roll+1) by n.assets array of conditional shape
-   		forecasts.}
+\description{
+Class for the univariate ACD Multiple forecast.
+}
+\section{Objects from the Class}{
+Objects can be created by calls of the function \code{\link{multiforecast}}. 
+}
+\section{Slots}{
+  \describe{
+    \item{\code{forecast}:}{Object of class \code{"vector"}}
+    \item{\code{desc}:}{Object of class \code{"vector"}}
   }
 }
-\author{Alexios Ghalanos}
-\seealso{
-Classes \code{\linkS4class{ACDmultifilter}}, \code{\linkS4class{ACDmultifit}} and 
-\code{\linkS4class{ACDmultispec}}.
+\section{Methods}{
+  \describe{
+   \item{fitted}{\code{signature(object = "ACDmultiforecast")}: 
+    conditional mean dynamics.}
+    \item{residuals}{\code{signature(object = "ACDmultiforecast")}: 
+    residuals.}
+    \item{shape}{\code{signature(object = "ACDmultiforecast")}: 
+    conditional shape dynamics, with optional argument
+    \sQuote{transformed} on whether to returned the transformed
+    dynamics (default: TRUE).}
+    \item{sigma}{\code{signature(object = "ACDmultiforecast")}: 
+    conditional volatility.}
+    \item{skew}{\code{signature(object = "ACDmultiforecast")}:  
+    conditional skew dynamics, with optional argument
+    \sQuote{transformed} on whether to returned the transformed
+    dynamics (default: TRUE)}
+	 }
 }
+\author{Alexios Ghalanos}
+\note{Depending on whether \sQuote{n.roll>0} was used 
+(in which case \sQuote{n.ahead=1}), this will either return a matrix
+or list of matrices.}
 \keyword{classes}

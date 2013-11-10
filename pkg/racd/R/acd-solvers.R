@@ -106,7 +106,7 @@
 
 # for use with cmaes vectorized + parallel application
 pfun = function(pars, arglist, fun, cluster){
-	ans = parRapply(cluster, pars, function(x) fun(x, arglist))
+	ans = parallel::parRapply(cluster, pars, function(x) fun(x, arglist))
 	return(ans)
 }
 
@@ -241,10 +241,10 @@ pfun = function(pars, arglist, fun, cluster){
 	N = NROW(pars)
 	xsol = vector(mode="list", length = N)
 	if(!is.null(cluster)){
-		clusterEvalQ(cluster, require(racd))
-		clusterExport(cluster, c("fun", "LB", "UB", "control", "pars", "arglist"), 
+		parallel::clusterEvalQ(cluster, require(racd))
+		parallel::clusterExport(cluster, c("fun", "LB", "UB", "control", "pars", "arglist"), 
 				envir = environment())
-		xsol = parLapplyLB(cluster, 1:N, function(i){
+		xsol = parallel::parLapplyLB(cluster, 1:N, function(i){
 					return( .optimsolver(pars[i,], fun, gr = NULL, control, LB, UB, arglist))
 				})
 	} else{
@@ -261,10 +261,10 @@ pfun = function(pars, arglist, fun, cluster){
 	N = NROW(pars)
 	xsol = vector(mode="list", length = N)
 	if(!is.null(cluster)){
-		clusterEvalQ(cluster, require(racd))
-		clusterExport(cluster, c("fun", "LB", "UB", "control", "pars", "arglist", "parscale"), 
+		parallel::clusterEvalQ(cluster, require(racd))
+		parallel::clusterExport(cluster, c("fun", "LB", "UB", "control", "pars", "arglist", "parscale"), 
 				envir = environment())
-		xsol = parLapplyLB(cluster, 1:N, function(i){
+		xsol = parallel::parLapplyLB(cluster, 1:N, function(i){
 					return( .ucminfsolver(pars[i,], fun, gr = NULL, hessian = NULL, 
 									parscale = parscale, control, LB, UB, arglist) )
 				})
@@ -284,10 +284,10 @@ pfun = function(pars, arglist, fun, cluster){
 	N = NROW(pars)
 	xsol = vector(mode="list", length = N)
 	if(!is.null(cluster)){
-		clusterEvalQ(cluster, require(racd))
-		clusterExport(cluster, c("fun", "LB", "UB", "control", "pars", "arglist", "parscale"), 
+		parallel::clusterEvalQ(cluster, require(racd))
+		parallel::clusterExport(cluster, c("fun", "LB", "UB", "control", "pars", "arglist", "parscale"), 
 				envir = environment())
-		xsol = parLapplyLB(cluster, 1:N, function(i){
+		xsol = parallel::parLapplyLB(cluster, 1:N, function(i){
 					return( .nlminbsolver(pars, fun, gr = NULL, hessian = NULL, 
 									parscale, control, LB, UB, arglist) )
 				})
@@ -307,10 +307,10 @@ pfun = function(pars, arglist, fun, cluster){
 	N = NROW(pars)
 	xsol = vector(mode="list", length = N)
 	if(!is.null(cluster)){
-		clusterEvalQ(cluster, require(racd))
-		clusterExport(cluster, c("fun", "LB", "UB", "control", "pars", "arglist"), 
+		parallel::clusterEvalQ(cluster, require(racd))
+		parallel::clusterExport(cluster, c("fun", "LB", "UB", "control", "pars", "arglist"), 
 				envir = environment())
-		xsol = parLapplyLB(cluster, 1:N, function(i){
+		xsol = parallel::parLapplyLB(cluster, 1:N, function(i){
 					return( .solnpsolver(pars[i,], fun, Ifn = NULL, ILB = NULL, IUB = NULL, control, LB, UB, arglist) )
 				})
 	} else{

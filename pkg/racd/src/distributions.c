@@ -352,7 +352,7 @@ double dhyp(const double x, const double alpha, const double beta, const double 
 	double e = x - mu;
 	pdf = 0.5*log(g) - log(2*alpha*delta*bessel_k(delta*sqrt(g),1,2)) - alpha*sqrt(delta*delta + e*e)  + beta*e;
 	if(logr==1){
-		pdf = pdf;
+		pdf = 1.0*pdf;
 	} else{
 		pdf = exp(pdf);
 	}
@@ -392,7 +392,7 @@ double dgh(const double x, const double alpha, const double beta, const double d
 	double e = beta*(x-mu);
 	pdf = a + f + k + e;
 	if(logr==1){
-		pdf = pdf;
+		pdf = 1.0*pdf;
 	} else{
 		pdf = exp(pdf);
 	}
