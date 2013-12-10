@@ -7,6 +7,8 @@
 	* Huge efficiency gains (memory management) from using 
 	the klin functionality for kronecker multiplication of 
 	the very large co-moment matrices.
+	* Fix to DCC estimation method for case of different univariate
+	specifications (reported by Suzanna Linn).
 	
 
 2013-09-02 Alexios Ghalanos <alexios@4dscape.com>
