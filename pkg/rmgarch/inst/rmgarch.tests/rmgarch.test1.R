@@ -396,7 +396,7 @@ rmgarch.test1e = function(cluster = NULL)
 			mean.model = list(model = c("constant", "AR", "VAR")[2], lag = 2), 
 			variance.model = list(model = "gjrGARCH", garchOrder = c(1,1), submodel = NULL, variance.targeting = FALSE), 
 			distribution.model = c("mvnorm", "manig", "magh")[2], ica = c("fastica", "radical")[1])
-	fit = gogarchfit(spec, data =  dji30ret[,1:3,drop=FALSE], out.sample = 0, cluster = cluster)
+	fit = gogarchfit(spec, data =  dji30ret[,1:4,drop=FALSE], out.sample = 0, cluster = cluster)
 	
 	options(width = 120)
 	zz <- file("test1e-1.txt", open="wt")

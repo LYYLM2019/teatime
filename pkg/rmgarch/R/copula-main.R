@@ -619,7 +619,7 @@
 	# This is the estimated parameter index
 	eidx = .estindfn(midx, mspec, model$pars)
 	
-	unipars = sapply(fitlist@fit, FUN = function(x) x@fit$ipars[x@fit$ipars[,3]==1,1])
+	unipars = lapply(fitlist@fit, FUN = function(x) x@fit$ipars[x@fit$ipars[,3]==1,1])
 	if(is.list(unipars)){
 		for(i in 1:length(unipars)){
 			uninames = names(unipars[[i]])
@@ -907,7 +907,7 @@
 	mpars = midx*0
 	# This is the estimated parameter index
 	eidx = .estindfn(midx, mspec, model$pars)
-	unipars = sapply(fitlist@fit, FUN = function(x) x@fit$ipars[x@fit$ipars[,3]==1,1])
+	unipars = lapply(fitlist@fit, FUN = function(x) x@fit$ipars[x@fit$ipars[,3]==1,1])
 	if(is.list(unipars)){
 		for(i in 1:length(unipars)){
 			uninames = names(unipars[[i]])
