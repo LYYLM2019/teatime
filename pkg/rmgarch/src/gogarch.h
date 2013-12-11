@@ -20,6 +20,9 @@
 #include <Rmath.h>
 #include <math.h>
 #include <RcppArmadillo.h>
+RcppExport SEXP tvbetacovar(SEXP wi, SEXP Vi, SEXP di);
+RcppExport SEXP tvbetacoskew(SEXP wi, SEXP Si, SEXP di);
+RcppExport SEXP tvbetacokurt(SEXP wi, SEXP Ki, SEXP di);
 RcppExport SEXP gogarchSigma(SEXP S, SEXP A);
 RcppExport SEXP gogarchCov(SEXP S, SEXP A);
 RcppExport SEXP gogarchCor(SEXP S, SEXP A);

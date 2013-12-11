@@ -1,8 +1,8 @@
 Package: rmgarch
 Type: Package
 Title: Multivariate GARCH models
-Version: 1.2-2
-Date: 2013-05-26
+Version: 1.2-4
+Date: 2013-12-15
 Author: Alexios Ghalanos <alexios@4dscape.com>
 Maintainer: Alexios Ghalanos <alexios@4dscape.com>
 LinkingTo: Rcpp, RcppArmadillo

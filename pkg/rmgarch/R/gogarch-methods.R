@@ -892,7 +892,7 @@ rcoskew = function(object, ...)
 			if(to>n.ahead)   stop("\nto>n.ahead!")
 			D3 = dimnames(sig<-sigma(object))[[3]][roll+1]
 			D1 = rownames(sig[from:to,,roll+1,drop=FALSE])
-			sig = matrix(sig[from:to,,roll+1], ncol = m, byrow=TRUE)
+			sig = matrix(sig[from:to,,roll+1], ncol = NCOL(A), byrow=TRUE)
 		} else{
 			D1 = as.character(index(sig<-sigma(object)))[from:to]
 			sig = matrix(sigma(object)[from:to,,], ncol = NCOL(A), byrow=TRUE)
@@ -923,7 +923,7 @@ rcoskew = function(object, ...)
 		if(standardize){
 			for(i in 1:n){
 				SD = sqrt(diag(A%*%diag(sig[i,]^2)%*%t(A)))
-				xs[,,i] = xs[,,i]/rmgarch:::.coskew.sigma(SD)
+				xs[,,i] = xs[,,i]/.coskew.sigma(SD)
 			}
 		}
 		dimnames(xs) = list(NULL, NULL, D1)
@@ -988,7 +988,7 @@ setMethod("rcoskew", signature(object = "goGARCHroll"), .rcoskewroll)
 	yskew = matrix(S3, ncol = NCOL(sig), nrow = NROW(sig), byrow = TRUE)*(sig^3)
 	Z = as(t(A), "dgeMatrix")
 	rhs = list(Matrix(t(A)), Z)
-	for(i in 1:n.roll){
+	for(i in 1:n){
 		K = .coskew.ind(yskew[i,])
 		lhs = A%*%K
 		xs[,,i] = fast_kron_M(rhs, lhs, m, p=2)
@@ -2239,6 +2239,320 @@ setMethod("nisurface", signature(object = "goGARCHfilter"), .newsimpact.gogarch)
 	}
 	return(list(nisurface = ni, axis = zeps))
 }
+
+#--------------------------------------------------------------------------------
+
+betacovar = function(object, ...)
+{
+	UseMethod("betacovar")
+}
+
+.betacovar.fit = function(object, weights, asset = 1)
+{
+	A = as.matrix(object, which = "A")
+	m = NROW(A)
+	sig = as.matrix(sigma(object))
+	n = NROW(sig)
+	if(is.vector(weights)){
+		if(length(weights) != m) stop("\nIncorrect weight vector length\n", call. = FALSE)
+		weights = matrix(weights, ncol = m, nrow = n, byrow = TRUE)
+	} else if(is.matrix(weights)){
+		nn = NROW(weights)
+		mm = NCOL(weights)
+		if(mm != m) stop("\nIncorrect column dimension for weights matrix\n", call. = FALSE)
+		if(nn != n) stop("\nIncorrect row dimension for weights matrix\n", call. = FALSE)
+	}
+	V = rcov(object)
+	d = c(dim(V), asset-1)
+	b = .Call("tvbetacovar", wi = weights, V_ = V, di = as.integer(d), PACKAGE="rmgarch")
+	b = xts(b, object@model$modeldata$index[1:object@model$modeldata$T])
+	colnames(b) = object@model$modeldata$asset.names[asset]
+	return(b)
+}
+
+# TODO: methods for forecast and simulation
+
+setMethod("betacovar", signature(object = "goGARCHfit"), .betacovar.fit)
+setMethod("betacovar", signature(object = "goGARCHfilter"), .betacovar.fit)
+
+.betacovar.forecast = function(object, weights, asset = 1)
+{
+	A = as.matrix(object, which = "A")
+	m = NROW(A)
+	sig = sigma(object)
+	if(object@model$n.roll>0){
+		n = object@model$n.roll+1
+	} else{
+		n = object@model$n.ahead
+	}
+	if(is.vector(weights)){
+		if(length(weights) != m) stop("\nIncorrect weight vector length\n", call. = FALSE)
+		weights = matrix(weights, ncol = m, nrow = n, byrow = TRUE)
+	} else if(is.matrix(weights)){
+		nn = NROW(weights)
+		mm = NCOL(weights)
+		if(mm != m) stop("\nIncorrect column dimension for weights matrix\n", call. = FALSE)
+		if(nn != n) stop("\nIncorrect row dimension for weights matrix\n", call. = FALSE)
+	}
+	V = array(unlist(rcov(object)), dim = c(m,m,n))
+	d = c(dim(V), asset-1)
+	b = .Call("tvbetacovar", wi = weights, V_ = V, di = as.integer(d), PACKAGE="rmgarch")
+	if(object@model$n.roll>0){
+		b = xts(b, as.POSIXct(dimnames(fitted(object))[[3]]))
+		colnames(b)<-paste(object@model$modeldata$asset.names[asset],"[T+1]",sep="")
+	} else{
+		b = matrix(b, ncol = 1)
+		rownames(b) = dimnames(fitted(object))[[1]]
+		colnames(b) = paste(object@model$modeldata$asset.names[asset],"[T0=",dimnames(fitted(object))[[3]],"]",sep="")
+	}
+	return(b)
+}
+setMethod("betacovar", signature(object = "goGARCHforecast"), .betacovar.forecast)
+#--------------------------------------------------------------------------------
+betacoskew = function(object, ...)
+{
+	UseMethod("betacoskew")
+}
+
+
+.betacoskew.fit = function(object, weights, asset = 1, cluster = NULL)
+{
+	A = as.matrix(object, which = "A")
+	m = NROW(A)
+	sig = as.matrix(sigma(object))
+	n = NROW(sig)
+	if(is.vector(weights)){
+		if(length(weights) != m) stop("\nIncorrect weight vector length\n", call. = FALSE)
+		weights = matrix(weights, ncol = m, nrow = n, byrow = TRUE)
+	} else if(is.matrix(weights)){
+		nn = NROW(weights)
+		mm = NCOL(weights)
+		if(mm != m) stop("\nIncorrect column dimension for weights matrix\n", call. = FALSE)
+		if(nn != n) stop("\nIncorrect row dimension for weights matrix\n", call. = FALSE)
+	}
+	if(n<100){
+		idx = cbind(1, n)
+		k = 1
+	} else{
+		idx1 = seq(1, n, by = 50)
+		if(idx1[length(idx1)]!=n) idx1 = c(idx1, n)			
+		idx1 = idx1[-1]
+		idx2 = c(1, idx1[-length(idx1)]+1)
+		idx = cbind(idx2, idx1)
+		k = NROW(idx)
+	}
+	b = rep(0, n)
+	if(!is.null(cluster)){
+		clusterExport(cluster, c("object","idx","asset","weights"), envir = environment())
+		clusterEvalQ(cluster, library(rmgarch))
+		ans = parLapply(cluster, 1:k, function(i){
+			S = rcoskew(object, from = idx[i,1], to = idx[i,2], standardize = FALSE)
+			d = c(dim(S), asset-1)
+			sol = as.numeric( .Call("tvbetacoskew", wi = weights[idx[i,1]:idx[i,2],,drop=FALSE], Si = S, di = as.integer(d), PACKAGE="rmgarch") )
+			return(sol)
+			})
+		for(i in 1:k) b[idx[i,1]:idx[i,2]] = ans[[i]]
+	} else{
+		for(i in 1:k){
+			S = rcoskew(object, from = idx[i,1], to = idx[i,2], standardize = FALSE)
+			d = c(dim(S), asset-1)
+			b[idx[i,1]:idx[i,2]] = as.numeric( .Call("tvbetacoskew", wi = weights[idx[i,1]:idx[i,2],,drop=FALSE], Si = S, di = as.integer(d), PACKAGE="rmgarch") )
+		}
+	}
+	b = xts(b, object@model$modeldata$index[1:object@model$modeldata$T])
+	colnames(b) = object@model$modeldata$asset.names[asset]
+	return(b)
+}
+
+setMethod("betacoskew", signature(object = "goGARCHfit"), .betacoskew.fit)
+setMethod("betacoskew", signature(object = "goGARCHfilter"), .betacoskew.fit)
+
+.betacoskew.forecast = function(object, weights, asset = 1)
+{
+	A = as.matrix(object, which = "A")
+	m = NROW(A)
+	sig = sigma(object)
+	if(object@model$n.roll>0){
+		n = object@model$n.roll+1
+		useroll = TRUE
+	} else{
+		n = object@model$n.ahead
+		useroll = FALSE
+		if(n<100){
+			idx = cbind(1, n)
+			k = 1
+		} else{
+			idx1 = seq(1, n, by = 50)
+			if(idx1[length(idx1)]!=n) idx1 = c(idx1, n)			
+			idx1 = idx1[-1]
+			idx2 = c(1, idx1[-length(idx1)]+1)
+			idx = cbind(idx2, idx1)
+			k = NROW(idx)
+		}
+	}
+	if(is.vector(weights)){
+		if(length(weights) != m) stop("\nIncorrect weight vector length\n", call. = FALSE)
+		weights = matrix(weights, ncol = m, nrow = n, byrow = TRUE)
+	} else if(is.matrix(weights)){
+		nn = NROW(weights)
+		mm = NCOL(weights)
+		if(mm != m) stop("\nIncorrect column dimension for weights matrix\n", call. = FALSE)
+		if(nn != n) stop("\nIncorrect row dimension for weights matrix\n", call. = FALSE)
+	}
+	b = rep(0, n)
+	if(useroll){
+		if(n<100){
+			S = rcoskew(object, from = 1, to = 1, roll = "all", standardize = FALSE)
+			d = c(dim(S), asset-1)
+			b = as.numeric( .Call("tvbetacoskew", wi = weights, Si = S, di = as.integer(d), PACKAGE="rmgarch") )
+		} else{
+			for(i in 1:n){
+				S = rcoskew(object, from = 1, to = 1, roll = i-1, standardize = FALSE)
+				d = c(dim(S), asset-1)
+				b[i] = as.numeric( .Call("tvbetacoskew", wi = weights[i,,drop=FALSE], Si = S, di = as.integer(d), PACKAGE="rmgarch") )
+			}
+		}
+	} else{
+		for(i in 1:k){
+			S = rcoskew(object, from = idx[i,1], to = idx[i,2], roll=0, standardize = FALSE)
+			d = c(dim(S), asset-1)
+			b[idx[i,1]:idx[i,2]] = as.numeric( .Call("tvbetacoskew", wi = weights[idx[i,1]:idx[i,2],,drop=FALSE], Si = S, di = as.integer(d), PACKAGE="rmgarch") )
+		}
+	}
+	if(object@model$n.roll>0){
+		b = xts(b, as.POSIXct(dimnames(fitted(object))[[3]]))
+		colnames(b)<-paste(object@model$modeldata$asset.names[asset],"[T+1]",sep="")
+	} else{
+		b = matrix(b, ncol = 1)
+		rownames(b) = dimnames(fitted(object))[[1]]
+		colnames(b) = paste(object@model$modeldata$asset.names[asset],"[T0=",dimnames(fitted(object))[[3]],"]",sep="")
+	}
+	return(b)
+}
+
+setMethod("betacoskew", signature(object = "goGARCHforecast"), .betacoskew.forecast)
+#--------------------------------------------------------------------------------
+betacokurt = function(object, ...)
+{
+	UseMethod("betacokurt")
+}
+.betacokurt.fit = function(object, weights, asset = 1, cluster = NULL)
+{
+	A = as.matrix(object, which = "A")
+	m = NROW(A)
+	sig = as.matrix(sigma(object))
+	n = NROW(sig)
+	if(is.vector(weights)){
+		if(length(weights) != m) stop("\nIncorrect weight vector length\n", call. = FALSE)
+		weights = matrix(weights, ncol = m, nrow = n, byrow = TRUE)
+	} else if(is.matrix(weights)){
+		nn = NROW(weights)
+		mm = NCOL(weights)
+		if(mm != m) stop("\nIncorrect column dimension for weights matrix\n", call. = FALSE)
+		if(nn != n) stop("\nIncorrect row dimension for weights matrix\n", call. = FALSE)
+	}
+	if(n<100){
+		idx = cbind(1, n)
+		k = 1
+	} else{
+		idx1 = seq(1, n, by = 50)
+		if(idx1[length(idx1)]!=n) idx1 = c(idx1, n)			
+		idx1 = idx1[-1]
+		idx2 = c(1, idx1[-length(idx1)]+1)
+		idx = cbind(idx2, idx1)
+		k = NROW(idx)
+	}
+	b = rep(0, n)
+	
+	if(!is.null(cluster)){
+		clusterExport(cluster, c("object","idx","asset","weights"), envir = environment())
+		clusterEvalQ(cluster, library(rmgarch))
+		ans = parLapply(cluster, 1:k, function(i){
+					K = rcokurt(object, from = idx[i,1], to = idx[i,2], standardize = FALSE)
+					d = c(dim(K), asset-1)
+					sol = as.numeric( .Call("tvbetacokurt", wi = weights[idx[i,1]:idx[i,2],,drop=FALSE], Ki = K, di = as.integer(d), PACKAGE="rmgarch") )
+					return(sol)
+				})
+		for(i in 1:k) b[idx[i,1]:idx[i,2]] = ans[[i]]
+	} else{
+		for(i in 1:k){
+			K = rcokurt(object, from = idx[i,1], to = idx[i,2], standardize = FALSE)
+			d = c(dim(K), asset-1)
+			b[idx[i,1]:idx[i,2]] = as.numeric( .Call("tvbetacokurt", wi = weights[idx[i,1]:idx[i,2],,drop=FALSE], Ki = K, di = as.integer(d), PACKAGE="rmgarch") )
+		}
+	}
+	b = xts(b, object@model$modeldata$index[1:object@model$modeldata$T])
+	colnames(b) = object@model$modeldata$asset.names[asset]
+	return(b)
+}
+
+setMethod("betacokurt", signature(object = "goGARCHfit"), .betacokurt.fit)
+setMethod("betacokurt", signature(object = "goGARCHfilter"), .betacokurt.fit)
+
+
+.betacokurt.forecast = function(object, weights, asset = 1)
+{
+	A = as.matrix(object, which = "A")
+	m = NROW(A)
+	sig = sigma(object)
+	if(object@model$n.roll>0){
+		n = object@model$n.roll+1
+		useroll = TRUE
+	} else{
+		n = object@model$n.ahead
+		useroll = FALSE
+		if(n<100){
+			idx = cbind(1, n)
+			k = 1
+		} else{
+			idx1 = seq(1, n, by = 50)
+			if(idx1[length(idx1)]!=n) idx1 = c(idx1, n)			
+			idx1 = idx1[-1]
+			idx2 = c(1, idx1[-length(idx1)]+1)
+			idx = cbind(idx2, idx1)
+			k = NROW(idx)
+		}
+	}
+	if(is.vector(weights)){
+		if(length(weights) != m) stop("\nIncorrect weight vector length\n", call. = FALSE)
+		weights = matrix(weights, ncol = m, nrow = n, byrow = TRUE)
+	} else if(is.matrix(weights)){
+		nn = NROW(weights)
+		mm = NCOL(weights)
+		if(mm != m) stop("\nIncorrect column dimension for weights matrix\n", call. = FALSE)
+		if(nn != n) stop("\nIncorrect row dimension for weights matrix\n", call. = FALSE)
+	}
+	b = rep(0, n)
+	if(useroll){
+		if(n<50){
+			K = rcokurt(object, from = 1, to = 1, roll = "all", standardize = FALSE)
+			d = c(dim(K), asset-1)
+			b = as.numeric( .Call("tvbetacokurt", wi = weights, Ki = K, di = as.integer(d), PACKAGE="rmgarch") )
+		} else{
+			for(i in 1:n){
+				K = rcokurt(object, from = 1, to = 1, roll = i-1, standardize = FALSE)
+				d = c(dim(K), asset-1)
+				b[i] = as.numeric( .Call("tvbetacokurt", wi = weights[i,,drop=FALSE], Ki = K, di = as.integer(d), PACKAGE="rmgarch") )
+			}
+		}
+	} else{
+		for(i in 1:k){
+			K = rcokurt(object, from = idx[i,1], to = idx[i,2], roll=0, standardize = FALSE)
+			d = c(dim(K), asset-1)
+			b[idx[i,1]:idx[i,2]] = as.numeric( .Call("tvbetacokurt", wi = weights[idx[i,1]:idx[i,2],,drop=FALSE], Ki = K, di = as.integer(d), PACKAGE="rmgarch") )
+		}
+	}
+	if(object@model$n.roll>0){
+		b = xts(b, as.POSIXct(dimnames(fitted(object))[[3]]))
+		colnames(b)<-paste(object@model$modeldata$asset.names[asset],"[T+1]",sep="")
+	} else{
+		b = matrix(b, ncol = 1)
+		rownames(b) = dimnames(fitted(object))[[1]]
+		colnames(b) = paste(object@model$modeldata$asset.names[asset],"[T0=",dimnames(fitted(object))[[3]],"]",sep="")
+	}
+	return(b)
+}
+setMethod("betacokurt", signature(object = "goGARCHforecast"), .betacokurt.forecast)
 
 #-----------------------------------------------------------------------------
 .abind = function (x, y) 

@@ -18,6 +18,74 @@
 #include "gogarch.h"
 using namespace Rcpp;
 
+SEXP tvbetacovar(SEXP wi, SEXP Vi, SEXP di)
+{
+	try {
+	NumericVector CV(Vi);
+	int *d = INTEGER(di);
+	arma::cube V(CV.begin(), d[0], d[1], d[2]);
+	arma::mat w = as<arma::mat>(wi);
+	arma::vec A(d[2]);
+	int i;
+	for(i=0;i<d[2];i++){
+		arma::mat temp = V.slice(i);
+		A(i) = arma::as_scalar(w.row(i) * arma::trans(temp.row(d[3])))/arma::as_scalar(w.row(i) * temp * arma::trans(w.row(i))) ;
+	}
+	return wrap( A );
+	} catch( std::exception &ex ) {
+		forward_exception_to_r( ex );
+	} catch(...) {
+		::Rf_error( "rmgarch-->GOGARCH beta covariance extractor c++ exception (unknown reason)" );
+	}
+	return R_NilValue;
+}
+
+SEXP tvbetacoskew(SEXP wi, SEXP Si, SEXP di)
+{
+	try {
+	NumericVector CS(Si);
+	int *d = INTEGER(di);
+	arma::cube S(CS.begin(), d[0], d[1], d[2]);
+	arma::mat w = as<arma::mat>(wi);
+	arma::vec A(d[2]);
+	int i;
+	for(i=0;i<d[2];i++){
+		arma::vec ww = arma::trans(arma::kron(w.row(i), w.row(i)));
+		arma::mat stemp = S.slice(i);
+		A(i) = arma::as_scalar(stemp.row(d[3]) * ww)/arma::as_scalar(w.row(i) *stemp * ww);
+	}
+	return wrap( A );
+	} catch( std::exception &ex ) {
+	forward_exception_to_r( ex );
+	} catch(...) {
+	::Rf_error( "rmgarch-->GOGARCH beta coskew extractor c++ exception (unknown reason)" );
+	}
+	return R_NilValue;
+}
+
+SEXP tvbetacokurt(SEXP wi, SEXP Ki, SEXP di)
+{
+	try {
+	NumericVector CK(Ki);
+	int *d = INTEGER(di);
+	arma::cube K(CK.begin(), d[0], d[1], d[2]);
+	arma::mat w = as<arma::mat>(wi);
+	arma::vec A(d[2]);
+	int i;
+	for(i=0;i<d[2];i++){
+		arma::vec ww = arma::trans(arma::kron(w.row(i), arma::kron(w.row(i), w.row(i))));
+		arma::mat ktemp = K.slice(i);
+		A(i) = arma::as_scalar(ktemp.row(d[3]) * ww)/arma::as_scalar(w.row(i) *ktemp * ww);
+	}
+	return wrap( A );
+	} catch( std::exception &ex ) {
+	forward_exception_to_r( ex );
+	} catch(...) {
+	::Rf_error( "rmgarch-->GOGARCH beta cokurt extractor c++ exception (unknown reason)" );
+	}
+	return R_NilValue;
+}
+
 SEXP gogarchSigma(SEXP S, SEXP A)
 {
 	try{

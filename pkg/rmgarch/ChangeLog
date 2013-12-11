@@ -1,4 +1,4 @@
-2013-11-15 Alexios Ghalanos <alexios@4dscape.com>
+2013-12-15 Alexios Ghalanos <alexios@4dscape.com>
 	* DESCRIPTION (Version): New version is 1.2-4.
 	* Implemented very fast flattened tensor indexing for
 	the gogarch higher co-moment matrices using analytic
@@ -9,6 +9,9 @@
 	the very large co-moment matrices.
 	* Fix to DCC estimation method for case of different univariate
 	specifications (reported by Suzanna Linn).
+	* Created and exported the betacovar, betacoskew and betacokurt 
+	methods for higher moment CAPM beta calculation (discussed in 
+	blog post).
 	
 
 2013-09-02 Alexios Ghalanos <alexios@4dscape.com>
