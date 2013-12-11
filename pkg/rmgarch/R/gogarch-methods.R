@@ -1548,7 +1548,7 @@ setMethod("convolution", signature(object = "goGARCHfilter"), .convolution)
 	} else{
 		m = dim(M2[[1]])[2]
 		M2 = array(sapply(M2, function(x) x[,,1]), dim=c(m, m, n.roll+1))
-		M1 = matrix(M1, ncol = m, nrow = n.roll+1, byrow=TRUE)
+		M1 = matrix(M1, ncol = NROW(A), nrow = n.roll+1, byrow=TRUE)
 	}
 	support.method = support.method[1]
 	model = object@model
