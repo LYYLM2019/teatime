@@ -1,4 +1,5 @@
 importFrom(KernSmooth, bkde)
+import(methods)
 exportClasses("SPD","GPDTAILS","GPDFIT")
 exportMethods("spdfit")
 exportMethods("pspd","dspd","qspd","rspd")
