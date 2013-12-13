@@ -7,7 +7,8 @@
 \description{
 The semi-parametric distribution fitting method.}
 \usage{
-spdfit(data, upper = 0.9, lower = 0.1, tailfit="GPD", type = c("mle", "pwm"), kernelfit = c("normal", "box", "epanech", "biweight", "triweight"), 
+spdfit(data, upper = 0.9, lower = 0.1, tailfit="GPD", type = c("mle", "pwm"), 
+kernelfit = c("normal", "box", "epanech", "biweight", "triweight"), 
 information = c("observed", "expected"), title = NULL, description = NULL, ...)
 }
 \arguments{

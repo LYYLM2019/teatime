@@ -1,7 +1,7 @@
 Package: spd
 Type: Package
 Title: Semi Parametric Distribution
-Version: 1.2-0
+Version: 2.0-0
 Date: 2013-12-15
 Author: alexios ghalanos <alexios@4dscape.com>
 Maintainer: alexios ghalanos <alexios@4dscape.com>
