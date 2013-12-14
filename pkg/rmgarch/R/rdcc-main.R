@@ -1205,12 +1205,12 @@
 	if( !is.null(cluster) ){
 		simH = vector(mode = "list", length = m.sim)
 		simX = vector(mode = "list", length = m.sim)
-		parallel::clusterEvalQ(cluster, require(rmgarch))
-		parallel::clusterExport(cluster, c("model", "z", "preQ", "Rbar", 
+		clusterEvalQ(cluster, require(rmgarch))
+		clusterExport(cluster, c("model", "z", "preQ", "Rbar", 
 						"Qbar", "Nbar", "mo", "n.sim", "n.start", "m", 
-						"rseed"), envir = environment())
-		mtmp = parallel::parLapply(cluster, as.list(1:m.sim), fun = function(j){
-					rmgarch:::.dccsimf(model, Z = z[,,j], Qbar = Qbar, 
+						"rseed",".dccsimf"), envir = environment())
+		mtmp = parLapply(cluster, as.list(1:m.sim), fun = function(j){
+					.dccsimf(model, Z = z[,,j], Qbar = Qbar, 
 							preQ = preQ, Nbar = Nbar, Rbar = Rbar, mo = mo, 
 							n.sim, n.start, m, rseed[j])
 				})
@@ -1220,7 +1220,7 @@
 		#simZ = lapply(mtmp, FUN = function(x) x$Z)
 		simZ = vector(mode = "list", length = m)
 		for(i in 1:m) simZ[[i]] = sapply(mtmp, FUN = function(x) x$Z[,i])			
-		parallel::clusterExport(cluster, c("fit", "n.sim", "n.start", "m.sim", 
+		clusterExport(cluster, c("fit", "n.sim", "n.start", "m.sim", 
 						"startMethod", "simZ", "presigma", "preresiduals", 
 						"prereturns", "mexsimdata", "vexsimdata"), 
 				envir = environment())
@@ -1458,12 +1458,12 @@
 	if( !is.null(cluster) ){
 		simH = vector(mode = "list", length = m.sim)
 		simX = vector(mode = "list", length = m.sim)
-		parallel::clusterEvalQ(cluster, require(rmgarch))
-		parallel::clusterExport(cluster, c("model", "z", "preQ", "Rbar", 
+		clusterEvalQ(cluster, require(rmgarch))
+		clusterExport(cluster, c("model", "z", "preQ", "Rbar", 
 						"Qbar", "Nbar", "mo", "n.sim", "n.start", "m", 
-						"rseed"), envir = environment())
-		mtmp = parallel::parLapply(cluster, as.list(1:m.sim), fun = function(j){
-					rmgarch:::.dccsimf(model, Z = z[,,j], Qbar = Qbar, 
+						"rseed",".dccsimf"), envir = environment())
+		mtmp = parLapply(cluster, as.list(1:m.sim), fun = function(j){
+					.dccsimf(model, Z = z[,,j], Qbar = Qbar, 
 							preQ = preQ, Nbar = Nbar, Rbar = Rbar, mo = mo, 
 							n.sim, n.start, m, rseed[j])
 				})
@@ -1474,11 +1474,11 @@
 		
 		simZ = vector(mode = "list", length = m)
 		for(i in 1:m) simZ[[i]] = sapply(mtmp, FUN = function(x) x$Z[,i])
-		parallel::clusterExport(cluster, c("mspec", "n.sim", "n.start", "m.sim", 
+		clusterExport(cluster, c("mspec", "n.sim", "n.start", "m.sim", 
 						"startMethod", "simZ", "presigma", "preresiduals", 
 						"prereturns", "mexsimdata", "vexsimdata"), 
 				envir = environment())
-		xtmp = parallel::parLapply(cluster, as.list(1:m), fun = function(j){
+		xtmp = parLapply(cluster, as.list(1:m), fun = function(j){
 					maxx = mspec@spec[[j]]@model$maxOrder;
 					htmp = ugarchpath(mspec@spec[[j]], n.sim = n.sim + n.start, n.start = 0, m.sim = m.sim,
 							custom.dist = list(name = "sample", distfit = matrix(simZ[[j]][-(1:mo), ], ncol = m.sim)),

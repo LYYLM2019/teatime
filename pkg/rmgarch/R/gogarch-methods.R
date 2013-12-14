@@ -1807,10 +1807,10 @@ setMethod("convolution", signature(object = "goGARCHroll"), .convolution.gogarch
 		}
 		if( !is.null(cluster) ){
 			clusterEvalQ(cluster, require(rmgarch))
-			clusterExport(cluster, c("zz", "fft.step", "wpars"), 
+			clusterExport(cluster, c("zz", "fft.step", "wpars","cfinv","nigmvcf"), 
 					envir = environment())
 			xpdf = parLapply(cluster, as.list(1:n), fun = function(i){
-						rmgarch:::cfinv(z = zz, f = rmgarch:::nigmvcf, 
+						cfinv(z = zz, f = nigmvcf, 
 								step = fft.step, alpha = wpars[,1,i], 
 								beta = wpars[,2,i], delta = wpars[,3,i], 
 								mu = wpars[,4,i])
@@ -1830,7 +1830,7 @@ setMethod("convolution", signature(object = "goGARCHroll"), .convolution.gogarch
 		support.user = matrix(NA, ncol = 2, nrow = n)
 		if( !is.null(cluster) ){
 			clusterEvalQ(cluster, require(rmgarch))
-			clusterExport(cluster, c("fft.step", "fft.by", "wpars"), envir = environment())
+			clusterExport(cluster, c("fft.step", "fft.by", "wpars","cfinv","nigmvcf"), envir = environment())
 			xsol = parLapply(cluster, as.list(1:n), fun = function(i){
 						xmin = min(apply(cbind(wpars[,1,i], wpars[,2,i], wpars[,3,i], wpars[,4,i]), 1, 
 										FUN = function(x) rugarch:::qnig(0.0000001, 
@@ -1841,7 +1841,7 @@ setMethod("convolution", signature(object = "goGARCHroll"), .convolution.gogarch
 													alpha = x[1], beta = x[2], 
 													delta = x[3], mu = x[4])))
 						zz = seq(xmin, xmax, by = fft.by)
-						ans = rmgarch:::cfinv(z = zz, f = rmgarch:::nigmvcf, 
+						ans = cfinv(z = zz, f = nigmvcf, 
 								step = fft.step, alpha = wpars[,1,i], 
 								beta = wpars[,2,i], delta = wpars[,3,i], 
 								mu = wpars[,4,i])
@@ -1936,10 +1936,10 @@ setMethod("convolution", signature(object = "goGARCHroll"), .convolution.gogarch
 		}
 		if( !is.null(cluster) ){
 			clusterEvalQ(cluster, require(rmgarch))
-			clusterExport(cluster, c("zz", "fft.step", "wpars"), 
+			clusterExport(cluster, c("zz", "fft.step", "wpars","cfinv","ghypmvcf"), 
 					envir = environment())
 			xpdf = parLapply(cluster, 1:n, fun = function(i){
-						rmgarch:::cfinv(z = zz, f = rmgarch:::ghypmvcf, 
+						cfinv(z = zz, f = ghypmvcf, 
 								step = fft.step, lambda = wpars[,5,i], 
 								alpha = wpars[,1,i], beta = wpars[,2,i], 
 								delta = wpars[,3,i], mu = wpars[,4,i])
@@ -1959,7 +1959,7 @@ setMethod("convolution", signature(object = "goGARCHroll"), .convolution.gogarch
 		if( !is.null(cluster) ){
 			clusterEvalQ(cluster, require(rmgarch))
 			clusterExport(cluster, c("zz", "fft.step", "fft.by", 
-							"wpars"), envir = environment())
+							"wpars","cfinv","ghypmvcf"), envir = environment())
 			xsol = parLapply(cluster, as.list(1:n), fun = function(i){
 						xmin = min(apply(cbind(wpars[,1,i], wpars[,2,i], wpars[,3,i], wpars[,4,i], wpars[,5,i]), 1, 
 										FUN = function(x) rugarch:::qgh(0.0000001, 
@@ -1972,7 +1972,7 @@ setMethod("convolution", signature(object = "goGARCHroll"), .convolution.gogarch
 													delta = x[3], mu = x[4], 
 													lambda = x[5])))
 						zz = seq(xmin, xmax, by = fft.by)
-						ans = rmgarch:::cfinv(z = zz, f = rmgarch:::ghypmvcf, 
+						ans = cfinv(z = zz, f = ghypmvcf, 
 								step = fft.step, lambda = wpars[,5,i], 
 								alpha = wpars[,1,i], beta = wpars[,2,i], 
 								delta = wpars[,3,i], mu = wpars[,4,i])

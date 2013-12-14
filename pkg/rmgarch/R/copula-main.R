@@ -1611,17 +1611,19 @@
 		sxres  = fit@mfit$stdresid
 		parallel::clusterEvalQ(cluster, require(rmgarch))
 		if(transformation == "spd"){
-			parallel::clusterExport(cluster, c("ures", "mpars", "minc", "m", 
+			clusterExport(cluster, c("ures", "mpars", "minc", "m", 
 							"sxres", "ssfit", "transformation"), envir = environment())
 		} else{
-			parallel::clusterExport(cluster, c("ures", "mpars", "minc", "m", "sxres", 
+			clusterExport(cluster, c("ures", "mpars", "minc", "m", "sxres", 
 							"transformation"), envir = environment())
 		}
-		mtmp = parallel::parLapply(cluster, as.list(1:m.sim), fun = function(i){
+		clusterExport(cluster, c(".qparametric", ".qempirical",".qspd"), envir = environment())
+		
+		mtmp = parLapply(cluster, as.list(1:m.sim), fun = function(i){
 					switch(transformation,
-							parametric = rmgarch:::.qparametric(matrix(ures[,,i], ncol = m), pars = mpars, modelinc = minc),
-							empirical = rmgarch:::.qempirical(matrix(ures[,,i], ncol = m), sxres),
-							spd = rmgarch:::.qspd(matrix(ures[,,i], ncol = m), sfit = ssfit))
+							parametric = .qparametric(matrix(ures[,,i], ncol = m), pars = mpars, modelinc = minc),
+							empirical = .qempirical(matrix(ures[,,i], ncol = m), sxres),
+							spd = .qspd(matrix(ures[,,i], ncol = m), sfit = ssfit))
 				})
 		for(i in 1:m.sim) zres[,,i] = mtmp[[i]]
 	} else{
@@ -1645,7 +1647,7 @@
 						"startMethod", "zres", "presigma", "tailres", 
 						"preresiduals", "prereturns", "model", 
 						"mexsimdata", "vexsimdata"), envir = environment())	
-		simlist = parallel::parLapply(cluster, as.list(1:m), fun = function(i){
+		simlist = parLapply(cluster, as.list(1:m), fun = function(i){
 						maxx = mspec@spec[[i]]@model$maxOrder;
 						htmp = ugarchpath(mspec@spec[[i]], n.sim = n.sim + n.start, n.start = 0, m.sim = m.sim,
 								custom.dist = list(name = "sample", distfit = matrix(zres[,i,1:m.sim], ncol = m.sim)),
@@ -1904,11 +1906,12 @@
 								"m", "sxres", "ssfit", "transformation"), 
 						envir = environment())
 			}
-			mtmp = parallel::parLapply(cluster, as.list(1:m.sim), fun = function(i){
+			clusterExport(cluster, c(".qparametric", ".qempirical",".qspd"), envir = environment())
+			mtmp = parLapply(cluster, as.list(1:m.sim), fun = function(i){
 						switch(transformation,
-								parametric = rmgarch:::.qparametric(matrix(ures$Usim[,,i], ncol = m), pars = mpars, modelinc = minc),
-								empirical = rmgarch:::.qempirical(matrix(ures$Usim[,,i], ncol = m), sxres),
-								spd = rmgarch:::.qspd(matrix(ures$Usim[,,i], ncol = m), sfit = ssfit))
+								parametric = .qparametric(matrix(ures$Usim[,,i], ncol = m), pars = mpars, modelinc = minc),
+								empirical = .qempirical(matrix(ures$Usim[,,i], ncol = m), sxres),
+								spd = .qspd(matrix(ures$Usim[,,i], ncol = m), sfit = ssfit))
 					})
 			for(i in 1:m.sim) zres[,,i] = mtmp[[i]]
 	} else{
@@ -1928,15 +1931,15 @@
 	
 	if( !is.null(cluster) ){
 			tailres = fit@mfit$tailuresids
-			parallel::clusterEvalQ(cluster, require('rugarch'))
-			parallel::clusterExport(cluster, c("mspec", "n.sim", "n.start", "m.sim", 
+			clusterEvalQ(cluster, require('rugarch'))
+			clusterExport(cluster, c("mspec", "n.sim", "n.start", "m.sim", 
 							"startMethod", "zres", "presigma", "tailres",
 							"preresiduals", "prereturns", "model", "mexsimdata", 
 							"vexsimdata", "rseed"), envir = environment())
 			simR = ures$simR
-			simlist = parallel::parLapply(cluster, as.list(1:m), fun = function(i){
+			simlist = parLapply(cluster, as.list(1:m), fun = function(i){
 						maxx = mspec@spec[[i]]@model$maxOrder;
-						htmp = rugarch::ugarchpath(mspec@spec[[i]], n.sim = n.sim + n.start, n.start = 0, m.sim = m.sim,
+						htmp = ugarchpath(mspec@spec[[i]], n.sim = n.sim + n.start, n.start = 0, m.sim = m.sim,
 								custom.dist = list(name = "sample", distfit = matrix(zres[,i,1:m.sim], ncol = m.sim)),
 								presigma = tail(presigma[,i], maxx), 
 								preresiduals = if( is.null(preresiduals) ) tail(tailres[,i], maxx) else tail(preresiduals[,i], maxx), 

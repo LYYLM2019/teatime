@@ -1227,9 +1227,9 @@ getfdccpars = function(pars, model){
 		clusterEvalQ(cluster, require(rmgarch))
 		clusterExport(cluster, c("model", "z", "A", "B", "C", 
 						"preQ", "Rbar", "Qbar", "mo", "n.sim", "n.start", "m", 
-						"rseed"), envir = environment())
+						"rseed",".fdccsimf"), envir = environment())
 		mtmp = parLapply(cluster, as.list(1:m.sim), fun = function(j){
-					rmgarch:::.fdccsimf(model, Z = z[,,j], A = A, B = B, C = C, 
+					.fdccsimf(model, Z = z[,,j], A = A, B = B, C = C, 
 							Qbar = Qbar, preQ = preQ, Rbar = Rbar, mo = mo, 
 							n.sim, n.start, m, rseed[j])
 				})
@@ -1478,9 +1478,9 @@ getfdccpars = function(pars, model){
 		clusterEvalQ(cluster, require(rmgarch))
 		clusterExport(cluster, c("model", "z", "A", "B", "C", "preQ", 
 						"Rbar", "Qbar", "mo", "n.sim", "n.start", "m", 
-						"rseed"), envir = environment())
+						"rseed",".fdccsimf"), envir = environment())
 		mtmp = parLapply(cluster, as.list(1:m.sim), fun = function(j){
-					rmgarch:::.fdccsimf(model, Z = z[,,j], A = A, B = B, C = C, 
+					.fdccsimf(model, Z = z[,,j], A = A, B = B, C = C, 
 							Qbar = Qbar, preQ = preQ, Rbar = Rbar, mo = mo, 
 							n.sim, n.start, m, rseed[j])
 				})

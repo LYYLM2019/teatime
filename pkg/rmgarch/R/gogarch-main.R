@@ -43,7 +43,7 @@
 	m = dim(data)[2]
 	if( is.null( colnames(data) ) ) cnames = paste("Asset_", 1:m, sep = "") else cnames = colnames(data)
 	
-	xdata = rmgarch:::.extractmdata(data)
+	xdata = .extractmdata(data)
 	if(!is.numeric(out.sample)) 
 		stop("\ngogarchfit-->error: out.sample must be numeric\n")
 	if(as.numeric(out.sample) < 0) 
@@ -75,7 +75,7 @@
 		p = tmp$p
 		N = tmp$N		
 	} else{
-		tmp = rmgarch:::mvmean.arfit(model, data, ARcoef, T, out.sample, solver, solver.control, fit.control, 
+		tmp = mvmean.arfit(model, data, ARcoef, T, out.sample, solver, solver.control, fit.control, 
 				cluster = cluster)
 		model = tmp$model
 		zdata = tmp$zdata

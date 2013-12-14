@@ -174,8 +174,9 @@ rcopula.student = function(n, U, Corr, df)
 		clusterEvalQ(cluster, require(rmgarch))
 		clusterExport(cluster, c("model", "z", "preQ", "Rbar", "Nbar", 
 						"mo", "n.sim", "n.start", "m", "xseed"), envir = environment())
+		clusterExport(cluster, ".copuladccsimf", envir = environment())
 		mtmp = parLapply(cluster, as.list(1:m.sim), fun = function(j){
-					rmgarch:::.copuladccsimf(model, Z = z[,,j], Qbar = Qbar, 
+					.copuladccsimf(model, Z = z[,,j], Qbar = Qbar, 
 							preQ = preQ, Nbar = Nbar, Rbar = Rbar, mo = mo, 
 							n.sim, n.start, m, rseed[j])
 				})
