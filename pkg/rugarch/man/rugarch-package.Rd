@@ -28,8 +28,8 @@ maintenance and use, both of which are now hosted on google code.
 \tabular{ll}{
 Package: \tab rugarch\cr
 Type: \tab Package\cr
-Version: \tab 1.2-9\cr
-Date: \tab 2013-11-28\cr
+Version: \tab 1.3-0\cr
+Date: \tab 2014-01-01\cr
 License: \tab GPL\cr
 LazyLoad: \tab yes\cr
 Depends: \tab R (>= 2.10), methods\cr
