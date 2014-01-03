@@ -1642,8 +1642,8 @@
 	
 	if( !is.null(cluster) ){
 		tailres = fit@mfit$tailuresids
-		parallel::clusterEvalQ(cluster, library('rugarch'))
-		parallel::clusterExport(cluster, c("mspec", "n.sim", "n.start", "m.sim", 
+		clusterEvalQ(cluster, library('rugarch'))
+		clusterExport(cluster, c("mspec", "n.sim", "n.start", "m.sim", 
 						"startMethod", "zres", "presigma", "tailres", 
 						"preresiduals", "prereturns", "model", 
 						"mexsimdata", "vexsimdata"), envir = environment())	
