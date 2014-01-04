@@ -697,9 +697,9 @@
 	if(modelinc[8]>0){
 		gpnames = paste("alpha",1:modelinc[8],sep="")
 		pxd = which(is.na(pars[idx["alpha", 1]:idx["alpha", 2], 5]))
-		if(length(pxd)>0) pars[(idx["alpha", 1]:idx["alpha", 2])[pxd], 5] = -1
+		if(length(pxd)>0) pars[(idx["alpha", 1]:idx["alpha", 2])[pxd], 5] = 0
 		pxd = which(is.na(pars[idx["alpha", 1]:idx["alpha", 2], 6]))
-		if(length(pxd)>0) pars[(idx["alpha", 1]:idx["alpha", 2])[pxd], 6] =  2
+		if(length(pxd)>0) pars[(idx["alpha", 1]:idx["alpha", 2])[pxd], 6] =  1
 		pars[idx["alpha", 1]:idx["alpha", 2], 1] = rep(0.05/modelinc[8], modelinc[8])
 		sp = na.omit(match(start.names, gpnames))
 		if(length(sp)>0){
@@ -717,9 +717,9 @@
 	if(modelinc[9] > 0){
 		gqnames = paste("beta",1:modelinc[9],sep="")
 		pxd = which(is.na(pars[idx["beta", 1]:idx["beta", 2], 5]))
-		if(length(pxd)>0) pars[(idx["beta", 1]:idx["beta", 2])[pxd], 5] = -1
+		if(length(pxd)>0) pars[(idx["beta", 1]:idx["beta", 2])[pxd], 5] = 0
 		pxd = which(is.na(pars[idx["beta", 1]:idx["beta", 2], 6]))
-		if(length(pxd)>0) pars[(idx["beta", 1]:idx["beta", 2])[pxd], 6] =  2
+		if(length(pxd)>0) pars[(idx["beta", 1]:idx["beta", 2])[pxd], 6] = 1
 		pars[idx["beta", 1]:idx["beta", 2], 1] = rep(0.7/modelinc[9], modelinc[9])
 		sp = na.omit(match(start.names, gqnames))
 		if(length(sp)>0){
