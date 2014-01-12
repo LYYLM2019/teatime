@@ -31,7 +31,10 @@
 	if(is.null(fit.control$scale)){
 		fit.control$scale = FALSE
 	} else{
-		if(fit.control$scale) stop("\nscaling not valid for realGARCH model.")
+		if(fit.control$scale){
+			warning("\nscaling not valid for realGARCH model.")
+			fit.control$scale=0
+		}
 	}
 	if(is.null(fit.control$rec.init)) fit.control$rec.init = 'all'
 	mm = match(names(fit.control), c("stationarity", "fixed.se", "scale", "rec.init"))
@@ -48,14 +51,7 @@
 	# if there are fixed pars we do no allow scaling as there would be no way of mixing scaled
 	# amd non scaled parameters	
 	if(sum(spec@model$pars[,2]) > 0) fit.control$scale = FALSE
-	if(is.null(realizedVol)){
-		stop("\nugarchfit-->error: you must supply the realized volatility (realizedVol) for the realGARCH model\n")
-	} else{
-		if(!is(realizedVol, "xts")) stop("\nugarchfit-->error: realizedVol must be an xts object\n")
-		realizedVolIndex = format(index(realizedVol), format="%Y-%m-%d")
-		if(!all.equal(realizedVolIndex, format(index(data), format="%Y-%m-%d"))) stop("\nugarchfit-->error: realizedVol must match the time index of the data")
-		if(ncol(realizedVol)>1) stop("\nugarchfit-->error: realizedVol should be a univariate series\n")
-	}
+
 	xdata = .extractdata(data)
 	if(!is.numeric(out.sample)) stop("\nugarchfit-->error: out.sample must be numeric\n")
 	if(as.numeric(out.sample)<0) stop("\nugarchfit-->error: out.sample must be positive\n")
@@ -66,7 +62,18 @@
 	index = xdata$index[1:(n-n.start)]
 	origdata = xdata$data
 	origindex = xdata$index
-	period = xdata$period	
+	period = xdata$period
+	
+	if(is.null(realizedVol)){
+		stop("\nugarchfit-->error: you must supply the realized volatility (realizedVol) for the realGARCH model\n")
+	} else{
+		if(!is(realizedVol, "xts")) stop("\nugarchfit-->error: realizedVol must be an xts object\n")
+		realizedVolIndex = format(index(realizedVol), format="%Y-%m-%d")
+		if(!all.equal(realizedVolIndex, format(xdata$index, format="%Y-%m-%d"))) stop("\nugarchfit-->error: realizedVol must match the time index of the data")
+		if(ncol(realizedVol)>1) stop("\nugarchfit-->error: realizedVol should be a univariate series\n")
+	}
+	
+	
 	# arglist replaces the use of custom environments (resolves the problem of 
 	# non-shared environment in parallel estimation, particularly windows)
 	garchenv = new.env(hash = TRUE)

@@ -5,6 +5,7 @@
 	with almost complete methods.
 	* Added new library in Imports (expm). Matrix power (%^%) required for the 
 	multi-period realGARCH forecast).
+	* Expanded multi-methods to deal with realGARCH and mcsGARCH model.
 	
 	
 2013-11-28  Alexios Ghalanos <alexios@4dscape.com>

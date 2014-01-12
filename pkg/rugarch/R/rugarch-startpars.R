@@ -775,7 +775,7 @@
 	
 	if(modelinc[13] > 0){
 		gqnames = "delta"
-		if(is.na(pars[idx["delta", 1]:idx["delta", 2], 5])) pars[idx["delta", 1]:idx["delta", 2], 5] = 0.5
+		if(is.na(pars[idx["delta", 1]:idx["delta", 2], 5])) pars[idx["delta", 1]:idx["delta", 2], 5] = 0.1
 		if(is.na(pars[idx["delta", 1]:idx["delta", 2], 6])) pars[idx["delta", 1]:idx["delta", 2], 6] = 5
 		pars[idx["delta", 1]:idx["delta", 2], 1] = 1
 		if(any(substr(start.names, 1, 5) == "delta")){

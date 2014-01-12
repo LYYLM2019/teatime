@@ -842,19 +842,19 @@ setReplaceMethod(f="setbounds", signature= c(object = "uGARCHspec", value = "vec
 {
 	return( switch(spec@model$modeldesc$vmodel,
 					sGARCH = .sgarchfit(spec = spec, data = data, out.sample = out.sample, solver = solver, 
-							solver.control = solver.control, fit.control = fit.control, ...),
+							solver.control = solver.control, fit.control = fit.control),
 					iGARCH = .igarchfit(spec = spec, data = data, out.sample = out.sample, solver = solver, 
-							solver.control = solver.control, fit.control = fit.control, ...),
+							solver.control = solver.control, fit.control = fit.control),
 					eGARCH = .egarchfit(spec = spec, data = data, out.sample = out.sample, solver = solver, 
-							solver.control = solver.control, fit.control = fit.control, ...),
+							solver.control = solver.control, fit.control = fit.control),
 					gjrGARCH = .gjrgarchfit(spec = spec, data = data, out.sample = out.sample, solver = solver, 
-							solver.control = solver.control, fit.control = fit.control, ...),
+							solver.control = solver.control, fit.control = fit.control),
 					apARCH = .aparchfit(spec = spec, data = data, out.sample = out.sample, solver = solver, 
-							solver.control = solver.control, fit.control = fit.control, ...),
+							solver.control = solver.control, fit.control = fit.control),
 					fGARCH = .fgarchfit(spec = spec, data = data, out.sample = out.sample, solver = solver, 
-							solver.control = solver.control, fit.control = fit.control, ...),
+							solver.control = solver.control, fit.control = fit.control),
 					csGARCH = .csgarchfit(spec = spec, data = data, out.sample = out.sample, solver = solver, 
-							solver.control = solver.control, fit.control = fit.control, ...),
+							solver.control = solver.control, fit.control = fit.control),
 					mcsGARCH = .mcsgarchfit(spec = spec, data = data, out.sample = out.sample, solver = solver, 
 							solver.control = solver.control, fit.control = fit.control, ...),
 					realGARCH = .realgarchfit(spec = spec, data = data, out.sample = out.sample, solver = solver, 
@@ -864,13 +864,13 @@ setReplaceMethod(f="setbounds", signature= c(object = "uGARCHspec", value = "vec
 .ugarchfilter = function(spec, data, out.sample = 0, n.old = NULL, rec.init = 'all', ...)
 {
 	return( switch(spec@model$modeldesc$vmodel,
-					sGARCH = .sgarchfilter(spec = spec, data = data, out.sample = out.sample, n.old = n.old, rec.init = rec.init, ...),
-					iGARCH = .igarchfilter(spec = spec, data = data, out.sample = out.sample, n.old = n.old, rec.init = rec.init, ...),
-					eGARCH = .egarchfilter(spec = spec, data = data, out.sample = out.sample, n.old = n.old, rec.init = rec.init, ...),
-					gjrGARCH = .gjrgarchfilter(spec = spec, data = data, out.sample = out.sample, n.old = n.old, rec.init = rec.init, ...),
-					apARCH = .aparchfilter(spec = spec, data = data, out.sample = out.sample, n.old = n.old, rec.init = rec.init, ...),
-					fGARCH = .fgarchfilter(spec = spec, data = data, out.sample = out.sample, n.old = n.old, rec.init = rec.init, ...),
-					csGARCH = .csgarchfilter(spec = spec, data = data, out.sample = out.sample, n.old = n.old, rec.init = rec.init, ...),
+					sGARCH = .sgarchfilter(spec = spec, data = data, out.sample = out.sample, n.old = n.old, rec.init = rec.init),
+					iGARCH = .igarchfilter(spec = spec, data = data, out.sample = out.sample, n.old = n.old, rec.init = rec.init),
+					eGARCH = .egarchfilter(spec = spec, data = data, out.sample = out.sample, n.old = n.old, rec.init = rec.init),
+					gjrGARCH = .gjrgarchfilter(spec = spec, data = data, out.sample = out.sample, n.old = n.old, rec.init = rec.init),
+					apARCH = .aparchfilter(spec = spec, data = data, out.sample = out.sample, n.old = n.old, rec.init = rec.init),
+					fGARCH = .fgarchfilter(spec = spec, data = data, out.sample = out.sample, n.old = n.old, rec.init = rec.init),
+					csGARCH = .csgarchfilter(spec = spec, data = data, out.sample = out.sample, n.old = n.old, rec.init = rec.init),
 					mcsGARCH = .mcsgarchfilter(spec = spec, data = data, out.sample = out.sample, n.old = n.old, rec.init = rec.init, ...),
 					realGARCH = .realgarchfilter(spec = spec, data = data, out.sample = out.sample, n.old = n.old, rec.init = rec.init, ...)) )
 }
@@ -1705,7 +1705,7 @@ setMethod("show",
 			cat(paste("\n*     GARCH Multi-Filter        *", sep = ""))
 			cat(paste("\n*-------------------------------*", sep = ""))
 			cat(paste("\nNo. Assets :", length(object@filter), sep=""))
-			if(object@model$type == "equal"){
+			if(object@desc$type == "equal"){
 					cat(paste("\nGARCH Model Filter", sep = ""))
 					cat(paste("\n--------------------------", sep = ""))
 					cat("\nParameters:\n")
@@ -1729,7 +1729,9 @@ setMethod("show",
 			cat(paste("\n*       GARCH Multi-Forecast      *", sep = ""))
 			cat(paste("\n*---------------------------------*", sep = ""))
 			cat(paste("\nNo. Assets :", length(object@forecast), sep=""))
-			cat(paste("\n--------------------------\n",sep=""))
+			cat(paste("\nn.ahead    :", object@forecast[[1]]@forecast$n.ahead, sep=""))
+			cat(paste("\nn.roll     :", object@forecast[[1]]@forecast$n.roll, sep=""))
+			cat("\n")
 			invisible(object)
 		})
 #----------------------------------------------------------------------------------
