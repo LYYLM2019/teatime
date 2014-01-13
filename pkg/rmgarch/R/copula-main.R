@@ -479,18 +479,18 @@
 				type = "pwm", kernel = "epanech"),  
 		fit.control = list(eval.se = TRUE, stationarity = TRUE, scale = FALSE), 
 		solver = "solnp", solver.control = list(), out.sample = 0, cluster = NULL, fit = NULL, 
-		VAR.fit = NULL, ...)
+		VAR.fit = NULL, realizedVol = NULL, ...)
 {
 	type = ifelse(spec@model$modeldesc$timecopula, "dynamic", "static")
 	ans = switch(type, 
 			dynamic = .cgarchfit.dynamic(spec = spec, data = data, spd.control = spd.control, 
 					fit.control = fit.control, solver = solver, solver.control = solver.control, 
 					out.sample = out.sample, cluster = cluster, fit = fit, VAR.fit = VAR.fit, 
-					...),
+					realizedVol = realizedVol, ...),
 			static = .cgarchfit.static(spec = spec, data = data, spd.control = spd.control, 
 					fit.control = fit.control, solver = solver, solver.control = solver.control, 
 					out.sample = out.sample, cluster = cluster, fit = fit, VAR.fit = VAR.fit, 
-					...))
+					realizedVol = realizedVol, ...))
 	return( ans )
 }
 
@@ -499,7 +499,7 @@
 				type = "pwm", kernel = "epanech"), 
 		fit.control = list(eval.se = TRUE, stationarity = TRUE, scale = FALSE), 
 		solver = "solnp", solver.control = list(), out.sample = 0, cluster = NULL, 
-		fit = NULL, VAR.fit = NULL, ...)
+		fit = NULL, VAR.fit = NULL, realizedVol = NULL, ...)
 {
 	tic = Sys.time()
 	.eps = .Machine$double.eps
@@ -507,7 +507,7 @@
 	umodel = spec@umodel
 	ufit.control = list()
 	if(is.null(fit.control$stationarity)){
-		ufit.control$stationarity = TRUE 
+		ufit.control$stationarity = TRUE
 	} else {
 		ufit.control$stationarity = fit.control$stationarity
 		fit.control$stationarity = NULL
@@ -592,9 +592,9 @@
 		model$residuals = res = residuals(fitlist)
 		model$sigma = sig = sigma(fitlist)
 	} else{
-		fitlist = multifit(multispec = mspec, data = zdata, out.sample = n.start, 
+		fitlist = multifit(multispec = mspec, data = xts(zdata, index), out.sample = n.start, 
 				solver = garch.solver, solver.control = solver.control, 
-				fit.control = ufit.control, cluster = cluster)
+				fit.control = ufit.control, cluster = cluster, realizedVol = realizedVol, ...)
 		converge = sapply(fitlist@fit, FUN = function(x) x@fit$convergence)
 		if( any( converge == 1 ) ){
 			pr = which(converge != 1)
@@ -677,6 +677,8 @@
 	arglist$m = m
 	arglist$T = T
 	arglist$data = zdata
+	arglist$index = index
+	arglist$realizedVol = realizedVol
 	arglist$model = model
 	arglist$fitlist = fitlist
 	arglist$umodel = umodel
@@ -693,9 +695,9 @@
 		if(npars == 0){
 			xspex = spec
 			for(i in 1:m) xspex@umodel$fixed.pars[[i]] = as.list(fitlist@fit[[i]]@model$pars[fitlist@fit[[i]]@model$pars[,3]==1,1])
-			return(cgarchfilter(spec = xspex, data = data, out.sample = out.sample, 
+			return(cgarchfilter(spec = xspex, data = xts(data, index), out.sample = out.sample, 
 							filter.control = list(), spd.control = spd.control, 
-							cluster = cluster, VAR.fit = VAR.fit))
+							cluster = cluster, VAR.fit = VAR.fit, realizedVol = realizedVol))
 		} else{
 			# with some parameters fixed we extract them (to be rejoined at end)
 			# so that they do not enter the solver
@@ -774,6 +776,7 @@
 	} else{	
 		mfit$convergence = 1
 	}
+	mfit$realizedVol = realizedVol
 	mfit$timer = Sys.time() - tic
 	# Add the spd fit as this is needed for simulation
 	model$sfit = sfit
@@ -788,7 +791,7 @@
 				type = "pwm", kernel = "epanech"),  
 		fit.control = list(eval.se = TRUE, stationarity = TRUE, scale = FALSE), 
 		solver = "solnp", solver.control = list(), out.sample = 0, cluster = NULL, 
-		fit = NULL, VAR.fit = NULL, ...)
+		fit = NULL, VAR.fit = NULL, realizedVol = NULL, ...)
 {
 	tic = Sys.time()
 	.eps = .Machine$double.eps
@@ -882,9 +885,9 @@
 		model$residuals = res = residuals(fitlist)
 		model$sigma = sig = sigma(fitlist)
 	} else{
-		fitlist = multifit(multispec = mspec, data = zdata, out.sample = n.start, 
+		fitlist = multifit(multispec = mspec, data = xts(zdata, index), out.sample = n.start, 
 				solver = garch.solver, solver.control = solver.control, 
-				fit.control = ufit.control, cluster = cluster)
+				fit.control = ufit.control, cluster = cluster, realizedVol = realizedVol, ...)
 		converge = sapply(fitlist@fit, FUN = function(x) x@fit$convergence)
 		if( any( converge == 1 ) ){
 			pr = which(converge != 1)
@@ -964,6 +967,8 @@
 	arglist$m = m
 	arglist$T = T 	
 	arglist$data = zdata
+	arglist$index = index
+	arglist$realizedVol = realizedVol
 	arglist$model = model
 	arglist$fitlist = fitlist
 	arglist$umodel = umodel
@@ -1086,7 +1091,7 @@
 		mfit$timer = Sys.time() - tic
 	}
 	model$sfit = sfit
-	
+	mfit$realizedVol = realizedVol
 	ans = new("cGARCHfit",
 			mfit = mfit,
 			model = model)
@@ -1096,22 +1101,22 @@
 
 .cgarchfilter = function(spec, data, out.sample = 0, filter.control = list(n.old = NULL), 
 		spd.control = list(lower = 0.1, upper = 0.9, type = "pwm", kernel = "epanech"), 
-		cluster = NULL, varcoef = NULL, ...)
+		cluster = NULL, varcoef = NULL, realizedVol = NULL, ...)
 {
 	type = ifelse(spec@model$modeldesc$timecopula, "dynamic", "static")
 	ans = switch(type, 
 			dynamic = .cgarchfilter.dynamic(spec = spec, data = data, out.sample = out.sample,
 					filter.control = filter.control, spd.control = spd.control, 
-					cluster = cluster, varcoef = varcoef, ...),
+					cluster = cluster, varcoef = varcoef, realizedVol = realizedVol, ...),
 			static = .cgarchfilter.static(spec = spec, data = data, out.sample = out.sample,
 					filter.control = filter.control, spd.control = spd.control, 
-					cluster = cluster, varcoef = varcoef, ...))
+					cluster = cluster, varcoef = varcoef, realizedVol = realizedVol, ...))
 	return( ans )
 }
 
 .cgarchfilter.static = function(spec, data, out.sample = 0, filter.control = list(n.old = NULL), 
 		spd.control = list(lower = 0.1, upper = 0.9, type = "pwm", kernel = "epanech"), 
-		cluster = NULL, varcoef = NULL, ...)
+		cluster = NULL, varcoef = NULL, realizedVol = NULL, ...)
 {
 	tic = Sys.time()
 	model = spec@model
@@ -1175,8 +1180,8 @@
 			umodel$modeldata$mexdata, umodel$modeldata$vexdata, umodel$start.pars, 
 			umodel$fixed.pars, umodel$vt)
 	
-	filterlist = multifilter(multifitORspec = mspec, data = zdata, out.sample = out.sample, 
-			cluster = cluster, n.old = n.old)
+	filterlist = multifilter(multifitORspec = mspec, data = xts(zdata, index), out.sample = out.sample, 
+			cluster = cluster, n.old = n.old, realizedVol = realizedVol, ...)
 	
 	if(spec@model$modelinc[1]>0) model$mu = mu else model$mu = fitted(filterlist)
 	model$residuals = res = residuals(filterlist)
@@ -1217,6 +1222,8 @@
 	arglist$m = m
 	arglist$T = T
 	arglist$data = zdata
+	arglist$index = index
+	arglist$realizedVol = realizedVol
 	arglist$model = model
 	arglist$filterlist = filterlist
 	arglist$umodel = umodel
@@ -1245,7 +1252,7 @@
 	
 	if( !is.null(cluster) ){
 			parallel::clusterExport(cluster, c("sig", "Rt", "res"), envir = environment())
-			tmp = parallel::parLapply(cluster, as.list(1:N), fun = function(i){
+			tmp = parLapply(cluster, as.list(1:N), fun = function(i){
 						tmph = diag( sig[i, ] ) %*% Rt %*% diag( sig[i, ] )
 						zz = eigen( tmph )
 						sqrtzz = ( zz$vectors %*% diag( sqrt( zz$values ) ) %*% solve( zz$vectors ) )
@@ -1293,6 +1300,7 @@
 	model$midx = midx
 	model$eidx = eidx
 	model$umodel = umodel
+	mfilter$realizedVol = realizedVol
 	mfilter$timer = Sys.time() - tic
 	#model$sfit = sfit
 	
@@ -1305,7 +1313,7 @@
 # ToDo : change the likelihood to take into account the n.old argument for the cov calculation.
 .cgarchfilter.dynamic = function(spec, data, out.sample = 0, filter.control = list(n.old = NULL), 
 		spd.control = list(lower = 0.1, upper = 0.9, type = "pwm", kernel = "epanech"), 
-		cluster = NULL, varcoef = NULL, ...)
+		cluster = NULL, varcoef = NULL, realizedVol = NULL, ...)
 {
 	tic = Sys.time()
 	model = spec@model
@@ -1368,8 +1376,8 @@
 			umodel$modeldata$mexdata, umodel$modeldata$vexdata, umodel$start.pars, 
 			umodel$fixed.pars, umodel$vt)
 	
-	filterlist = multifilter(multifitORspec = mspec, data = zdata, out.sample = out.sample, 
-			cluster = cluster, n.old = n.old)
+	filterlist = multifilter(multifitORspec = mspec, data = xts(zdata, index), out.sample = out.sample, 
+			cluster = cluster, n.old = n.old, realizedVol = realizedVol, ...)
 	
 	if(spec@model$modelinc[1]>0) model$mu = mu else model$mu = fitted(filterlist)
 	model$residuals = res = residuals(filterlist)
@@ -1408,6 +1416,8 @@
 	arglist$m = m
 	arglist$T = T
 	arglist$zdata = zdata
+	arglist$index = index
+	arglist$realizedVol = realizedVol
 	arglist$model = model
 	arglist$filterlist = filterlist
 	arglist$umodel = umodel
@@ -1437,7 +1447,7 @@
 	
 	if( !is.null(cluster) ){
 			parallel::clusterExport(cluster, c("sig", "Rt", "res"), envir = environment())
-			tmp = parallel::parLapply(cluster, as.list(1:N), fun = function(i){
+			tmp = parLapply(cluster, as.list(1:N), fun = function(i){
 						tmph = diag( sig[i, ] ) %*% Rt[[i]] %*% diag( sig[i, ] )
 						zz = eigen( tmph )
 						sqrtzz = ( zz$vectors %*% diag( sqrt( zz$values ) ) %*% solve( zz$vectors ) )
@@ -1482,6 +1492,7 @@
 	model$midx = midx
 	model$eidx = eidx
 	model$umodel = umodel
+	mfilter$realizedVol = realizedVol
 	mfilter$timer = Sys.time() - tic
 	#model$sfit = sfit
 	
@@ -1496,7 +1507,7 @@
 		startMethod = c("unconditional", "sample"), presigma = NULL, 
 		preresiduals = NULL, prereturns = NULL, preR = NULL, preQ = NULL, 
 		preZ = NULL, rseed = NULL, mexsimdata = NULL, vexsimdata = NULL, 
-		cluster = NULL, only.density = FALSE, ...)
+		cluster = NULL, only.density = FALSE, prerealized = NULL, ...)
 {
 	timecopula = fit@model$modeldesc$timecopula
 	if(timecopula){
@@ -1504,13 +1515,13 @@
 				startMethod = startMethod[1], presigma = presigma, preresiduals = preresiduals, 
 				prereturns = prereturns, preR = preR, preQ = preQ, preZ = preZ, 
 				rseed = rseed, mexsimdata = mexsimdata, vexsimdata = vexsimdata, 
-				cluster = cluster, only.density = only.density)
+				cluster = cluster, only.density = only.density, prerealized = prerealized)
 	} else{
 		ans = .cgarchsim1(fit = fit, n.sim = n.sim, n.start = n.start, m.sim = m.sim, 
 				startMethod = startMethod[1], presigma = presigma, preresiduals = preresiduals, 
 				prereturns = prereturns, preR = preR, rseed = rseed, 
 				mexsimdata = mexsimdata, vexsimdata = vexsimdata, cluster = cluster, 
-				only.density = only.density)
+				only.density = only.density, prerealized = prerealized)
 	}
 	return(ans)
 }
@@ -1518,7 +1529,8 @@
 .cgarchsim1 = function(fit, n.sim = 1000, n.start = 0, m.sim = 1, 
 		startMethod = c("unconditional", "sample"), preresiduals = NULL, 
 		presigma = NULL, prereturns = NULL, preR = NULL, rseed = NULL, 
-		mexsimdata = NULL, vexsimdata = NULL, cluster = NULL, only.density = FALSE, ...)
+		mexsimdata = NULL, vexsimdata = NULL, cluster = NULL, only.density = FALSE, 
+		prerealized = NULL, ...)
 {
 	# first generate the copula random uniform numbers (static copula)
 	# ures --> transform --> zres
@@ -1593,6 +1605,23 @@
 		prereturns = tail(model$modeldata$data[1:T, ], 25)
 	}
 	
+	if(fit@model$umodel$modeldesc$vmodel[1]=="realGARCH"){
+		if( !is.null(prerealized) ){
+			if( !is.matrix(prerealized) ) 
+				stop("\ncgarchsim-->error: prerealized must be a matrix.")
+			if( dim(prerealized)[2] != m ) 
+				stop("\ncgarchsim-->error: wrong column dimension for prerealized.")
+			if( dim(prerealized)[1] != mg ) 
+				stop(paste("\ncgarchsim-->error: wrong row dimension for prerealized (need ", mg, " rows.", sep = ""))
+		} else{
+			# might want to include the option for unconditional
+		    # value of realized (unexported in rugarch)
+			prerealized = tail(fit@mfit$realizedVol[1:T,], 25)
+		}
+	} else{
+		prerealized = matrix(NA, ncol = m, nrow = 25)
+	}
+	
 	ures = .sample.copula(model, Qbar = NULL, preQ = NULL, Rbar = Rbar, 
 			Nbar = NULL, preZ = NULL, n.sim = n.sim, n.start = n.start, 
 			m.sim = m.sim, rseed = rseed, cluster = cluster)
@@ -1646,7 +1675,7 @@
 		clusterExport(cluster, c("mspec", "n.sim", "n.start", "m.sim", 
 						"startMethod", "zres", "presigma", "tailres", 
 						"preresiduals", "prereturns", "model", 
-						"mexsimdata", "vexsimdata"), envir = environment())	
+						"mexsimdata", "vexsimdata","prerealized"), envir = environment())	
 		simlist = parLapply(cluster, as.list(1:m), fun = function(i){
 						maxx = mspec@spec[[i]]@model$maxOrder;
 						htmp = ugarchpath(mspec@spec[[i]], n.sim = n.sim + n.start, n.start = 0, m.sim = m.sim,
@@ -1654,7 +1683,8 @@
 								presigma = tail(presigma[,i], maxx), 
 								preresiduals = if( is.null(preresiduals) ) tail(tailres[,i], maxx) else tail(preresiduals[,i], maxx), 
 								prereturns = if(model$modelinc[1]==0) tail(prereturns[,i], maxx) else NA,
-								mexsimdata = if(model$modelinc[1]==0) mexsimdata[[i]] else NULL, vexsimdata = vexsimdata[[i]] )
+								mexsimdata = if(model$modelinc[1]==0) mexsimdata[[i]] else NULL, vexsimdata = vexsimdata[[i]],
+								prerealized = tail(prerealized[,i], maxx))
 						h = matrix(tail(htmp@path$sigmaSim^2, n.sim), nrow = n.sim)
 						x = matrix(htmp@path$seriesSim,  nrow = n.sim + n.start)
 						return(list(h = h, x = x))
@@ -1688,7 +1718,8 @@
 					presigma = tail(presigma[,i], maxx), 
 					preresiduals = if( is.null(preresiduals) ) tail(fit@mfit$tailuresids[,i], maxx) else tail(preresiduals[,i], maxx), 
 					prereturns = if(model$modelinc[1]==0) tail(prereturns[,i], maxx) else NA,
-					mexsimdata = if(model$modelinc[1]==0) mexsimdata[[i]] else NULL, vexsimdata = vexsimdata[[i]] )
+					mexsimdata = if(model$modelinc[1]==0) mexsimdata[[i]] else NULL, vexsimdata = vexsimdata[[i]],
+					prerealized = tail(prerealized[,i], maxx))
 			h = matrix(tail(htmp@path$sigmaSim^2, n.sim), nrow = n.sim)
 			x = matrix(htmp@path$seriesSim,  nrow = n.sim + n.start)
 			simlist[[i]] = list(h = h, x = x)
@@ -1774,7 +1805,8 @@
 .cgarchsim2 = function(fit, n.sim = 1000, n.start = 0, m.sim = 1, 
 		startMethod = c("unconditional", "sample"), presigma = NULL, preresiduals = NULL, 
 		prereturns = NULL, preR = NULL, preQ = NULL, preZ = NULL, rseed = NULL, 
-		mexsimdata = NULL, vexsimdata = NULL, cluster = NULL, only.density = FALSE, ...)
+		mexsimdata = NULL, vexsimdata = NULL, cluster = NULL, only.density = FALSE, 
+		prerealized = NULL, ...)
 {
 	# first generate the copula random uniform numbers (static copula)
 	# ures --> transform --> zres
@@ -1856,6 +1888,23 @@
 		prereturns = tail(model$modeldata$data[1:T, ], 25)
 	}
 	
+	if(fit@model$umodel$modeldesc$vmodel[1]=="realGARCH"){
+		if( !is.null(prerealized) ){
+			if( !is.matrix(prerealized) ) 
+				stop("\ncgarchsim-->error: prerealized must be a matrix.")
+			if( dim(prerealized)[2] != m ) 
+				stop("\ncgarchsim-->error: wrong column dimension for prerealized.")
+			if( dim(prerealized)[1] != mg ) 
+				stop(paste("\ncgarchsim-->error: wrong row dimension for prerealized (need ", mg, " rows.", sep = ""))
+		} else{
+			# might want to include the option for unconditional
+			# value of realized (unexported in rugarch)
+			prerealized = tail(fit@mfit$realizedVol[1:T,], 25)
+		}
+	} else{
+		prerealized = matrix(NA, ncol = m, nrow = 25)
+	}
+	
 	# This step is KEY if we are to replicate the 1-ahead filter
 
 	if(startMethod == "sample"){
@@ -1935,7 +1984,7 @@
 			clusterExport(cluster, c("mspec", "n.sim", "n.start", "m.sim", 
 							"startMethod", "zres", "presigma", "tailres",
 							"preresiduals", "prereturns", "model", "mexsimdata", 
-							"vexsimdata", "rseed"), envir = environment())
+							"vexsimdata", "rseed","prerealized"), envir = environment())
 			simR = ures$simR
 			simlist = parLapply(cluster, as.list(1:m), fun = function(i){
 						maxx = mspec@spec[[i]]@model$maxOrder;
@@ -1944,7 +1993,8 @@
 								presigma = tail(presigma[,i], maxx), 
 								preresiduals = if( is.null(preresiduals) ) tail(tailres[,i], maxx) else tail(preresiduals[,i], maxx), 
 								prereturns = if(model$modelinc[1]==0) tail(prereturns[,i], maxx) else NA,
-								mexsimdata = if(model$modelinc[1]==0) mexsimdata[[i]] else NULL, vexsimdata = vexsimdata[[i]] )
+								mexsimdata = if(model$modelinc[1]==0) mexsimdata[[i]] else NULL, vexsimdata = vexsimdata[[i]],
+								prerealized = tail(prerealized[,i], maxx))
 						h = matrix(tail(htmp@path$sigmaSim^2, n.sim), nrow = n.sim)
 						x = matrix(htmp@path$seriesSim,  nrow = n.sim + n.start)
 						return(list(h = h, x = x))
@@ -1982,7 +2032,8 @@
 					presigma = tail(presigma[,i], maxx), 
 					preresiduals = if( is.null(preresiduals) ) tail(fit@mfit$tailuresids[,i], maxx) else tail(preresiduals[,i], maxx), 
 					prereturns = if(model$modelinc[1]==0) tail(prereturns[,i], maxx) else NA,
-					mexsimdata = if(model$modelinc[1]==0) mexsimdata[[i]] else NULL, vexsimdata = vexsimdata[[i]] )
+					mexsimdata = if(model$modelinc[1]==0) mexsimdata[[i]] else NULL, vexsimdata = vexsimdata[[i]],
+					prerealized = tail(prerealized[,i], maxx))
 			h = matrix(tail(htmp@path$sigmaSim^2, n.sim), nrow = n.sim)
 			x = matrix(htmp@path$seriesSim,  nrow = n.sim + n.start)
 			simlist[[i]] = list(h = h, x = x)
@@ -2090,6 +2141,7 @@
 	# skew
 	# shape
 	# ghlambda
+	# xi
 	# C
 	# dcca
 	# dccb
@@ -2097,11 +2149,11 @@
 	# mshape
 	# mskew
 	
-	vecmax = rep(0, 18)
-	names(vecmax) = rownames(umodel$modelinc[1:18,])
+	vecmax = rep(0, 19)
+	names(vecmax) = rownames(umodel$modelinc[1:19,])
 	vecmax = apply(umodel$modelinc, 1, FUN = function(x) max(x) )
 	maxOrder = apply(umodel$modelinc, 2, FUN = function(x) max(c(x[2], x[3], x[8], x[9])))
-	sumv = 18 + sum(pmax(1, vecmax[c(2,3,6,8,9,10,11,12,13,15,16)])) - 11
+	sumv = 19 + sum(pmax(1, vecmax[c(2,3,6,8,9,10,11,12,13,15,16)])) - 11
 	tmpmat = matrix(0, ncol = m+1, nrow = sumv)
 	nx = 0
 	pnames = NULL
@@ -2246,6 +2298,12 @@
 	}
 	nx = nx + max(1, vecmax[18])
 	pnames = c(pnames, "ghlambda")
+	
+	if(vecmax[19]>0){
+		tmpmat[nx+1, 1:m] = umodel$modelinc[19, ]
+	}
+	nx = nx + max(1, vecmax[19])
+	pnames = c(pnames, "xi")
 	
 	sumdcc = 6 + sum(pmax(1, modelinc[c(3,4,5,6,7,8)])) - 6
 	tmpmat = rbind(tmpmat, matrix(0, ncol = m+1, nrow = sumdcc))

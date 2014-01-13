@@ -11,7 +11,8 @@ Method for creating a Copula-GARCH simulation object.
 cgarchsim(fit, n.sim = 1000, n.start = 0, m.sim = 1, 
 startMethod = c("unconditional", "sample"), presigma = NULL, preresiduals = NULL, 
 prereturns = NULL, preR = NULL, preQ = NULL, preZ = NULL, rseed = NULL, 
-mexsimdata = NULL, vexsimdata = NULL, cluster = NULL, only.density = FALSE, ...)
+mexsimdata = NULL, vexsimdata = NULL, cluster = NULL, only.density = FALSE, 
+prerealized = NULL, ...)
 }
 \arguments{
   	\item{fit}{ 
@@ -57,6 +58,8 @@ mexsimdata = NULL, vexsimdata = NULL, cluster = NULL, only.density = FALSE, ...)
   	time approximation to the multivariate density). This is sometimes useful
   	in order to control memory management for large simulations not requiring
   	any other information.}
+  	\item{prerealized}{Allows the starting realized volatility values to be provided 
+	by the user for the univariate GARCH dynamics.}
   	\item{...}{.}
 }
 \value{

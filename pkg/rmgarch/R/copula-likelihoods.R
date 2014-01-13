@@ -114,7 +114,8 @@ copula.tvnormalLLH2 = function(pars, arglist)
 		specx[[i]] = mspec@spec[[i]]
 		setfixed(specx[[i]]) = as.list(mpars[which(midx[,i]==1), i])
 	}
-	flt = multifilter(multifitORspec = multispec(specx), data = data, out.sample = n.start)
+	flt = multifilter(multifitORspec = multispec(specx), data = xts(data, arglist$index[1:nrow(data)]), 
+			out.sample = n.start, realizedVol = arglist$realizedVol[1:nrow(data),])
 	garch.llhvec = sapply(flt@filter, FUN = function(x) x@filter$log.likelihoods)
 	H = sigma(flt)
 	resids = residuals(flt)
@@ -355,7 +356,8 @@ copula.normalLLH2 = function(pars, arglist)
 		specx[[i]] = mspec@spec[[i]]
 		setfixed(specx[[i]]) = as.list(mpars[which(midx[,i]==1), i])
 	}
-	flt = multifilter(multifitORspec = multispec(specx), data = data, out.sample = n.start)
+	flt = multifilter(multifitORspec = multispec(specx), data = xts(data, arglist$index[1:nrow(data)]), 
+			out.sample = n.start, realizedVol = arglist$realizedVol[1:nrow(data),])
 	garch.llhvec = sapply(flt@filter, FUN = function(x) x@filter$log.likelihoods)
 	H = sigma(flt)
 	resids = residuals(flt)
@@ -603,7 +605,8 @@ copula.tvstudentLLH2 = function(pars, arglist)
 		specx[[i]] = mspec@spec[[i]]
 		setfixed(specx[[i]]) = as.list(mpars[which(midx[,i]==1), i])
 	}
-	flt = multifilter(multifitORspec = multispec(specx), data = data, out.sample = n.start)
+	flt = multifilter(multifitORspec = multispec(specx), data = xts(data, arglist$index[1:nrow(data)]), 
+			out.sample = n.start, realizedVol = arglist$realizedVol[1:nrow(data),])
 	garch.llhvec = sapply(flt@filter, FUN = function(x) x@filter$log.likelihoods)
 	H = sigma(flt)
 	resids = residuals(flt)
@@ -848,7 +851,8 @@ copula.studentLLH2 = function(pars, arglist)
 		specx[[i]] = mspec@spec[[i]]
 		setfixed(specx[[i]]) = as.list(mpars[which(midx[,i]==1), i])
 	}
-	flt = multifilter(multifitORspec = multispec(specx), data = data, out.sample = n.start)
+	flt = multifilter(multifitORspec = multispec(specx), data = xts(data, arglist$index[1:nrow(data)]), 
+			out.sample = n.start, realizedVol = arglist$realizedVol[1:nrow(data),])
 	garch.llhvec = sapply(flt@filter, FUN = function(x) x@filter$log.likelihoods)
 	H = sigma(flt)
 	resids = residuals(flt)

@@ -12,8 +12,9 @@
 	* Created and exported the betacovar, betacoskew and betacokurt 
 	methods for higher moment CAPM beta calculation (discussed in 
 	blog post).
+	* Enanced DCC based models to accept the newly released realGARCH model
+	from rugarch (additional argument realizedVol required).
 	
-
 2013-09-02 Alexios Ghalanos <alexios@4dscape.com>
 	* DESCRIPTION (Version): New version is 1.2-3.
 	* replaced estimation of Kendall's tau with cor.fk function of pcaPP

@@ -58,7 +58,8 @@ returned to the workspace.}
 \item{rseed}{ A vector of length sim to initiate the random number generator.}
 \item{...}{ Additional parameters passed to the model fitting routines. In 
 particular, for the \sQuote{gogarch} model additional parameters are passed to
-the ICA routines.}
+the ICA routines, whereas for the \sQuote{dcc} and \sQuote{cgarch} models 
+this would include the \sQuote{realizedVol} xts matrix for the realGARCH model.}
 }
 \value{
 A \code{\linkS4class{fScenario}} object containing the scenario and the model 
