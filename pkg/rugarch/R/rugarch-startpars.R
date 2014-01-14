@@ -739,7 +739,7 @@
 		gqnames = "eta11"
 		if(is.na(pars[idx["eta1", 1]:idx["eta1", 2], 5])) pars[idx["eta1", 1]:idx["eta1", 2], 5] = -0.5
 		if(is.na(pars[idx["eta1", 1]:idx["eta1", 2], 6])) pars[idx["eta1", 1]:idx["eta1", 2], 6] = 0.5
-		pars[idx["eta1", 1]:idx["eta1", 2], 1] = 0.98
+		pars[idx["eta1", 1]:idx["eta1", 2], 1] = 0.1
 		if(any(substr(start.names, 1, 4) == "eta1")){
 			j = which(substr(start.names, 1, 4) == "eta1")
 			gqmatch = charmatch(start.names[j],gqnames)
