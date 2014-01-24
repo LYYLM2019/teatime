@@ -16,9 +16,6 @@
 #################################################################################*/
 #ifndef _gogarch_H
 #define _gogarch_H
-#include <R.h>
-#include <Rmath.h>
-#include <math.h>
 #include <RcppArmadillo.h>
 RcppExport SEXP tvbetacovar(SEXP wi, SEXP Vi, SEXP di);
 RcppExport SEXP tvbetacoskew(SEXP wi, SEXP Si, SEXP di);

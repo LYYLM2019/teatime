@@ -19,13 +19,13 @@ the correlation.\cr
 \tabular{ll}{
 Package: \tab rmgarch\cr
 Type: \tab Package\cr
-Version: \tab 1.2-4\cr
-Date: \tab 2013-12-15\cr
+Version: \tab 1.2-5\cr
+Date: \tab 2014-01-25\cr
 License: \tab GPL\cr
 LazyLoad: \tab yes\cr
-Depends: R (>= 3.0.0), methods, Rcpp, RcppArmadillo, rugarch\cr
+Depends: R (>= 3.0.2), methods, rugarch\cr
 LinkingTo:\tab Rcpp, RcppArmadillo\cr
-Imports: Rsolnp, MASS, parallel, Matrix, zoo, xts, Bessel, ff, fftw, shape, Kendall, spd\cr}
+Imports: Rsolnp, MASS, parallel, Matrix, zoo, xts, Bessel, ff, fftw, shape, Kendall, spd, Rcpp\cr}
 The main package functionality, currently supports the \emph{GO-GARCH} with ICA 
 method, and is available through the \code{\link{gogarchspec}}, 
 \code{\link{gogarchfit}}, \code{\link{gogarchfilter}}, \code{\link{gogarchforecast}}, 
