@@ -103,46 +103,120 @@
 		if(mod=="realGARCH"){
 			clusterExport(cluster, "realVol", envir = environment())
 			fitlist = parLapply(cluster, as.list(1:n), fun = function(i){
-						ugarchfit(spec = multispec@spec[[i]], data = data[, i, drop = FALSE], 
+						ans<-try(ugarchfit(spec = multispec@spec[[i]], data = data[, i, drop = FALSE], 
 								out.sample = out.sample[i], solver = solver, 
 								solver.control = solver.control, fit.control = fit.control, 
-								realizedVol = realVol[,i])
+								realizedVol = realVol[,i]), silent=TRUE)
+						if(inherits(ans, 'try-error')){
+							ans<-try(ugarchfit(spec = multispec@spec[[i]], data = data[, i, drop = FALSE], 
+											out.sample = out.sample[i], solver = "gosolnp", 
+											fit.control = fit.control, 
+											realizedVol = realVol[,i]), silent=TRUE)
+						}
+						if(convergence(ans)==1){
+							ans<-try(ugarchfit(spec = multispec@spec[[i]], data = data[, i, drop = FALSE], 
+											out.sample = out.sample[i], solver = "gosolnp", 
+											fit.control = fit.control, 
+											realizedVol = realVol[,i]), silent=TRUE)
+						}
+						return(ans)
 					})
 		} else if(mod=="mcsGARCH"){
 			clusterExport(cluster, "DailyVar", envir = environment())
 			fitlist = parLapply(cluster, as.list(1:n), fun = function(i){
-						ugarchfit(spec = multispec@spec[[i]], data = data[, i, drop = FALSE], 
-								out.sample = out.sample[i], solver = solver, 
-								solver.control = solver.control, fit.control = fit.control,
-								DailyVar = DailyVar[,i])
+						ans<-try(ugarchfit(spec = multispec@spec[[i]], data = data[, i, drop = FALSE], 
+										out.sample = out.sample[i], solver = solver, 
+										solver.control = solver.control, fit.control = fit.control, 
+										DailyVar = DailyVar[,i]), silent=TRUE)
+						if(inherits(ans, 'try-error')){
+							ans<-try(ugarchfit(spec = multispec@spec[[i]], data = data[, i, drop = FALSE], 
+											out.sample = out.sample[i], solver = "gosolnp", 
+											fit.control = fit.control, 
+											DailyVar = DailyVar[,i]), silent=TRUE)
+						}
+						if(convergence(ans)==1){
+							ans<-try(ugarchfit(spec = multispec@spec[[i]], data = data[, i, drop = FALSE], 
+											out.sample = out.sample[i], solver = "gosolnp", 
+											fit.control = fit.control, 
+											DailyVar = DailyVar[,i]), silent=TRUE)
+						}
+						return(ans)
 					})
 		} else{		
 			fitlist = parLapply(cluster, as.list(1:n), fun = function(i){
-						ugarchfit(spec = multispec@spec[[i]], data = data[, i, drop = FALSE], 
-								out.sample = out.sample[i], solver = solver, 
-								solver.control = solver.control, fit.control = fit.control)
+						ans<-try(ugarchfit(spec = multispec@spec[[i]], data = data[, i, drop = FALSE], 
+										out.sample = out.sample[i], solver = solver, 
+										solver.control = solver.control, fit.control = fit.control), silent=TRUE)
+						if(inherits(ans, 'try-error')){
+							ans<-try(ugarchfit(spec = multispec@spec[[i]], data = data[, i, drop = FALSE], 
+											out.sample = out.sample[i], solver = "gosolnp", 
+											fit.control = fit.control), silent=TRUE)
+						}
+						if(convergence(ans)==1){
+							ans<-try(ugarchfit(spec = multispec@spec[[i]], data = data[, i, drop = FALSE], 
+											out.sample = out.sample[i], solver = "gosolnp", 
+											fit.control = fit.control), silent=TRUE)
+						}
+						return(ans)
 					})
 		}
 	} else{
 		if(mod=="realGARCH"){
 			fitlist = lapply(as.list(1:n), FUN = function(i){
-						ugarchfit(spec = multispec@spec[[i]], data = data[, i, drop = FALSE], 
-								out.sample = out.sample[i], solver = solver, 
-								solver.control = solver.control, fit.control = fit.control,
-								realizedVol = realVol[,i])
+						ans<-try(ugarchfit(spec = multispec@spec[[i]], data = data[, i, drop = FALSE], 
+										out.sample = out.sample[i], solver = solver, 
+										solver.control = solver.control, fit.control = fit.control, 
+										realizedVol = realVol[,i]), silent=TRUE)
+						if(inherits(ans, 'try-error')){
+							ans<-try(ugarchfit(spec = multispec@spec[[i]], data = data[, i, drop = FALSE], 
+											out.sample = out.sample[i], solver = "gosolnp", 
+											fit.control = fit.control, 
+											realizedVol = realVol[,i]), silent=TRUE)
+						}
+						if(convergence(ans)==1){
+							ans<-try(ugarchfit(spec = multispec@spec[[i]], data = data[, i, drop = FALSE], 
+											out.sample = out.sample[i], solver = "gosolnp", 
+											fit.control = fit.control, 
+											realizedVol = realVol[,i]), silent=TRUE)
+						}
+						return(ans)
 					})
 		} else if(mod=="mcsGARCH"){
 			fitlist = lapply(as.list(1:n), FUN = function(i){
-						ugarchfit(spec = multispec@spec[[i]], data = data[, i, drop = FALSE], 
-								out.sample = out.sample[i], solver = solver, 
-								solver.control = solver.control, fit.control = fit.control,
-								DailyVar = DailyVar[,i])
+						ans<-try(ugarchfit(spec = multispec@spec[[i]], data = data[, i, drop = FALSE], 
+										out.sample = out.sample[i], solver = solver, 
+										solver.control = solver.control, fit.control = fit.control, 
+										DailyVar = DailyVar[,i]), silent=TRUE)
+						if(inherits(ans, 'try-error')){
+							ans<-try(ugarchfit(spec = multispec@spec[[i]], data = data[, i, drop = FALSE], 
+											out.sample = out.sample[i], solver = "gosolnp", 
+											fit.control = fit.control, 
+											DailyVar = DailyVar[,i]), silent=TRUE)
+						}
+						if(convergence(ans)==1){
+							ans<-try(ugarchfit(spec = multispec@spec[[i]], data = data[, i, drop = FALSE], 
+											out.sample = out.sample[i], solver = "gosolnp", 
+											fit.control = fit.control, 
+											DailyVar = DailyVar[,i]), silent=TRUE)
+						}
+						return(ans)
 					})
 		} else{			
 			fitlist = lapply(as.list(1:n), FUN = function(i){
-						ugarchfit(spec = multispec@spec[[i]], data = data[, i, drop = FALSE], 
-								out.sample = out.sample[i], solver = solver, 
-								solver.control = solver.control, fit.control = fit.control)
+						ans<-try(ugarchfit(spec = multispec@spec[[i]], data = data[, i, drop = FALSE], 
+										out.sample = out.sample[i], solver = solver, 
+										solver.control = solver.control, fit.control = fit.control), silent=TRUE)
+						if(inherits(ans, 'try-error')){
+							ans<-try(ugarchfit(spec = multispec@spec[[i]], data = data[, i, drop = FALSE], 
+											out.sample = out.sample[i], solver = "gosolnp", 
+											fit.control = fit.control), silent=TRUE)
+						}
+						if(convergence(ans)==1){
+							ans<-try(ugarchfit(spec = multispec@spec[[i]], data = data[, i, drop = FALSE], 
+											out.sample = out.sample[i], solver = "gosolnp", 
+											fit.control = fit.control), silent=TRUE)
+						}
+						return(ans)
 					})
 		}
 	}

@@ -29,8 +29,8 @@ maintenance and use, both of which are now hosted on google code.
 Package: \tab rugarch\cr
 Type: \tab Package\cr
 Title: \tab Univariate GARCH models\cr
-Version: \tab 1.3-0\cr
-Date: \tab 2014-01-01\cr
+Version: \tab 1.3-1\cr
+Date: \tab 2014-01-25\cr
 Author: \tab Alexios Ghalanos <alexios@4dscape.com>\cr
 Maintainer: \tab Alexios Ghalanos <alexios@4dscape.com>\cr
 Depends: \tab R (>= 2.10), methods\cr
@@ -107,11 +107,11 @@ simulated object (and their multi- function equivalents).
 \section{How to cite this package}{
   Whenever using this package, please cite as\cr
 
- \preformatted{@Manual{Ghalanos_2013,
+ \preformatted{@Manual{Ghalanos_2014,
  author       = {Alexios Ghalanos},
  title        = {{rugarch}: Univariate GARCH models.},
- year         = {2013},
- note         = {R package version 1.2-9.},}}
+ year         = {2014},
+ note         = {R package version 1.3-1.},}}
 \emph{}
 }
 \section{License}{
