@@ -65,12 +65,12 @@
 	# Q-Statistics on Standardized Residuals
 	#H0 : No serial correlation ==> Accept H0 when prob. is High [Q < Chisq(lag)]
 	box10 = Weighted.Box.test(stdresid, lag = 1, type = "Ljung-Box", fitdf = 0, if(p==2) sqrd.res = TRUE else sqrd.res = FALSE)
-	box15 = Weighted.Box.test(stdresid, lag = 2*df+df-1, type = "Ljung-Box", fitdf = df, if(p==2) sqrd.res = TRUE else sqrd.res = FALSE)
-	box20 = Weighted.Box.test(stdresid, lag = 4*df+df-1, type = "Ljung-Box", fitdf = df, if(p==2) sqrd.res = TRUE else sqrd.res = FALSE)
+	box15 = Weighted.Box.test(stdresid, lag = max(2, 2*df+df-1), type = "Ljung-Box", fitdf = df, if(p==2) sqrd.res = TRUE else sqrd.res = FALSE)
+	box20 = Weighted.Box.test(stdresid, lag = max(5, 4*df+df-1), type = "Ljung-Box", fitdf = df, if(p==2) sqrd.res = TRUE else sqrd.res = FALSE)
 	LBSR<-matrix(NA,ncol=2,nrow=3)
 	LBSR[1:3,1] = c(box10$statistic[[1]],box15$statistic[[1]],box20$statistic[[1]])
 	LBSR[1:3,2] = c(box10$p.value[[1]],box15$p.value[[1]],box20$p.value[[1]])
-	rownames(LBSR) = c(paste("Lag[1]",sep=""), paste("Lag[2*(p+q)+(p+q)-1][",2*df+df-1,"]",sep=""), paste("Lag[4*(p+q)+(p+q)-1][",4*df+df-1,"]",sep=""))
+	rownames(LBSR) = c(paste("Lag[1]",sep=""), paste("Lag[2*(p+q)+(p+q)-1][",max(2, 2*df+df-1),"]",sep=""), paste("Lag[4*(p+q)+(p+q)-1][",max(5, 4*df+df-1),"]",sep=""))
 	colnames(LBSR) = c("statistic","p-value")
 	return(LBSR)
 }
@@ -1050,7 +1050,7 @@ repmat = function(a,n,m){
 # Direct Import of Weighted Tests of FISHER and GALLAGHER (WeightedPortTest package)
 Weighted.Box.test = function (x, lag = 1, type = c("Box-Pierce", "Ljung-Box", "Monti"), 
 		fitdf = 0, sqrd.res = FALSE, log.sqrd.res = FALSE, abs.res = FALSE, 
-		weighted = TRUE) 
+		weighted = TRUE)
 {
 	if(lag<(2*fitdf+fitdf-1)) stop("\nLag must be equal to a minimum of 2*fitdf+fitdf-1")
 	if(NCOL(x) > 1) stop("\nx is not a vector or univariate time series")
