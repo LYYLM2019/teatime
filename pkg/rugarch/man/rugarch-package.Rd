@@ -135,6 +135,9 @@ Volatility, \emph{Journal of Finance}, \bold{48}, 1749--1778.\cr
 Engle, R. F., and Sokalska, M. E. 2012, Forecasting intraday volatility in the 
 US equity market. Multiplicative component GARCH. \emph{Journal of Financial 
 Econometrics}, \bold{10(1)}, 54--83.\cr
+Fisher, T. J., and Gallagher, C. M. 2012, New weighted portmanteau statistics 
+for time series goodness of fit testing, \emph{Journal of the American Statistical 
+Association}, \bold{107(498)}, 777--787.\cr
 Glosten, L.R., Jagannathan, R. and Runkle, D.E. 1993, On the Relation between 
 the Expected Value and the Volatility of the Nominal Excess Return on Stocks, 
 \emph{Journal of Finance}, \bold{48(5)}, 1779--1801.\cr
