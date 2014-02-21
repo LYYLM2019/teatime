@@ -1108,9 +1108,7 @@ Weighted.Box.test = function (x, lag = 1, type = c("Box-Pierce", "Ljung-Box", "M
 			names(STATISTIC) <- "Weighted X-squared on Residuals for fitted ARMA process"
 		}
 		shape <- (3/4) * (lag + 1)^2 * lag/(2 * lag^2 + 3 * lag + 1 - 6 * lag * fitdf)
-		# ERRROR was here:
-		# scale <- (2/3) * (2 * lag^2 + 3 * lag + 1 - 6 * lag * fitdf)/(lag/(lag + 1))
-		scale <- (2/3) * (2*lag^2 + 3*lag+1 - 6 * lag * fitdf)/(lag*(lag + 1))
+		scale <- (2/3) * (2*lag^2 + 3*lag+1 - 6 * lag * fitdf)/(lag*(lag + 1))		
 		PARAMETER <- c(shape, scale)
 		names(PARAMETER) <- c("Shape", "Scale")
 		PVAL <- 1 - pgamma(STATISTIC, shape = shape, scale = scale)
