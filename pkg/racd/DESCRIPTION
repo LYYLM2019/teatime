@@ -1,8 +1,8 @@
 Package: racd
 Type: Package
 Title: Autoregressive Conditional Density Models
-Version: 1.0-2
-Date: 2013-11-30
+Version: 1.0-3
+Date: 2014-02-23
 Author: Alexios Ghalanos <alexios@4dscape.com>
 Maintainer: Alexios Ghalanos <alexios@4dscape.com>
 Depends: methods, rugarch

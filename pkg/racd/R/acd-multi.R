@@ -1,14 +1,14 @@
 #################################################################################
 ##
-##   R package rugarch by Alexios Ghalanos Copyright (C) 2008-2013.
-##   This file is part of the R package rugarch.
+##   R package racd by Alexios Ghalanos Copyright (C) 2008-2013.
+##   This file is part of the R package racd.
 ##
-##   The R package rugarch is free software: you can redistribute it and/or modify
+##   The R package racd is free software: you can redistribute it and/or modify
 ##   it under the terms of the GNU General Public License as published by
 ##   the Free Software Foundation, either version 3 of the License, or
 ##   (at your option) any later version.
 ##
-##   The R package rugarch is distributed in the hope that it will be useful,
+##   The R package racd is distributed in the hope that it will be useful,
 ##   but WITHOUT ANY WARRANTY; without even the implied warranty of
 ##   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 ##   GNU General Public License for more details.
@@ -80,7 +80,7 @@ setMethod("acdmultispec",  signature(speclist = "vector"), definition = .multisp
 	##################
 	# Parallel Execution Prelim Checks
 	if( !is.null(cluster) ){
-		clusterEvalQ(cluster, library(rugarch))
+		clusterEvalQ(cluster, library(racd))
 		clusterExport(cluster, c("multispec", "data", "out.sample", "solver", 
 							"solver.control", "fit.control"), envir = environment())
 			fitlist = parLapply(cluster, as.list(1:n), fun = function(i){

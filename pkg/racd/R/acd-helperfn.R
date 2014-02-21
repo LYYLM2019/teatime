@@ -27,8 +27,8 @@
 	arglist$returnType = "llh"
 	fit = vector(mode = "list")
 	if(is.null(hess)){
-		fit$hessian = rugarch:::.hessian2sidedcpp(f, ipars[estidx, 1], arglist = arglist)
-		#fit$hessian = numDeriv::hessian(f, x = ipars[estidx, 1], arglist = arglist)
+		#fit$hessian = rugarch:::.hessian2sidedcpp(f, ipars[estidx, 1], arglist = arglist)
+		fit$hessian = numDeriv::hessian(f, x = ipars[estidx, 1], arglist = arglist)
 		E = eigen(fit$hessian)$values
 		# approx. number of decimal places lost to roundoff/numerical estimation error
 		condH = log10(max(E)/min(E))
@@ -41,7 +41,7 @@
 	# (might also fail in which case user will see an error about the inversion failure)
 	if(inherits(fit$cvar, "try-error")){
 		#fit$hessian = numDeriv::hessian(f, ipars[estidx,1], method = "Richardson", arglist = arglist)
-		warning("\nrugarch-->warning: failed to invert hessian\n")
+		warning("\nracd-->warning: failed to invert hessian\n")
 		fit$cvar = NULL
 	}
 	arglist$returnType = "all"

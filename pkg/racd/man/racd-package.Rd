@@ -21,8 +21,8 @@ those of the GO-GARCH model in the rmgarch package.
 \tabular{ll}{
 Package: \tab racd\cr
 Type: \tab Package\cr
-Version: \tab 1.0-2\cr
-Date: \tab 2013-11-30\cr
+Version: \tab 1.0-3\cr
+Date: \tab 2014-02-23\cr
 License: \tab GPL\cr
 LazyLoad: \tab yes\cr
 Depends: \tab methods, rugarch\cr
@@ -40,8 +40,8 @@ variance targeting near impossible except for these models.
  \preformatted{@Manual{Ghalanos_2013,
  author       = {Alexios Ghalanos},
  title        = {{racd}: Autoregressive Conditional Density Models.},
- year         = {2013},
- note 	      = {R package version 1.0-2.},}}
+ year         = {2014},
+ note 	      = {R package version 1.0-3.},}}
 \emph{}
 }
 \section{License}{
