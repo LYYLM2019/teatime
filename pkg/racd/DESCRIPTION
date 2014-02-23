@@ -1,8 +1,8 @@
 Package: racd
 Type: Package
 Title: Autoregressive Conditional Density Models
-Version: 1.0-3
-Date: 2014-02-23
+Version: 1.0-4
+Date: 2014-02-24
 Author: Alexios Ghalanos <alexios@4dscape.com>
 Maintainer: Alexios Ghalanos <alexios@4dscape.com>
 Depends: methods, rugarch
@@ -10,5 +10,5 @@ Imports: xts, Rsolnp, ucminf, numDeriv, zoo, parma, Matrix
 Description: Time Varying Higher Moment Models
 Collate: acd-classes.R acd-dbounds.R acd-solvers.R acd-startpars.R acd-helperfn.R acd-sacd.R acd-csacd.R acd-mcsacd.R acd-main.R acd-plots.R acd-multi.R acd-methods.R zzz.R
 LazyLoad: yes
-URL: htpp://www.unstarched.net, https://r-forge.r-project.org/projects/teatime/
+URL: http://www.unstarched.net, https://r-forge.r-project.org/projects/teatime/
 License: GPL-3
