@@ -10,7 +10,6 @@
 	* DESCRIPTION (Version): New version is 1.2-5.
 	* Patched to work with recent changes to Rcpp.
 
-	
 2014-01-05 Alexios Ghalanos <alexios@4dscape.com>
 	* DESCRIPTION (Version): New version is 1.2-4.
 	* Implemented very fast flattened tensor indexing for
