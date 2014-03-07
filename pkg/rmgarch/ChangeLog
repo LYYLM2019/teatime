@@ -1,3 +1,7 @@
+2014-03-07 Alexios Ghalanos <alexios@4dscape.com>
+	* DESCRIPTION (Version): New version is 1.2-7.
+	* Fix to mvt random number generation for DCC simulation methods.
+	
 2014-01-26 Alexios Ghalanos <alexios@4dscape.com>
 	* DESCRIPTION (Version): New version is 1.2-6.
 	* Fix for solaris build [thanks to BDR].

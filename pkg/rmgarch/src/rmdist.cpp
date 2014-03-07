@@ -39,7 +39,7 @@ arma::rowvec rmvtx(arma::mat R, const double nu, arma::rowvec Z){
 	//temp = ( eigvec * arma::diagmat( arma::sqrt( eigval ) ) * arma::inv( eigvec ) );
 	arma::rowvec ans(m);
 	arma::mat temp = arma::chol(R);
-	double v = sqrt(Rf_rchisq(nu)/nu);
+	double v = sqrt(nu/Rf_rchisq(nu));
 	ans = (1.0/v) * (Z * temp);
 	return ans;
 }
