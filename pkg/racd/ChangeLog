@@ -1,5 +1,5 @@
 2014-02-22  Alexios Ghalanos <alexios@4dscape.com>
-* DESCRIPTION (Version): 1.0-3
+* DESCRIPTION (Version): 1.0-4
 * Changed the Q-statistics and ARCH-LM test to weighted versions
 of Fisher and Gallagher (2012) (following update to rugarch).
 
