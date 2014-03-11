@@ -33,7 +33,6 @@ arma::rowvec rmvtx(arma::mat R, const double nu, arma::rowvec Z){
 	Rcpp::RNGScope scope;
 	int m = R.n_rows;
 	double rc = Rf_rchisq(nu);
-	//Rcpp::Rcout << "chisq     = " << rc << std::endl;
 	arma::mat RR = ((nu-2.0)/nu)*R;
 	double v = sqrt(nu/rc);
 	arma::rowvec ans(m);
