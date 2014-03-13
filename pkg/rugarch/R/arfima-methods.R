@@ -151,6 +151,11 @@ setMethod(f = "getspec", signature(object = "ARFIMAfit"), definition = .getarfim
 					arfima = model$modelinc[4], external.regressors = model$modeldata$mexdata), 
 			distribution.model = model$modeldesc$distribution, start.pars  = model$start.pars, 
 			fixed.pars = as.list(fixed.pars))
+	# ToDo: Need to check that the parameters are not outside the bounds...
+	idx = which(is.na(tmp@model$pars[,"LB"]))
+	tmp@model$pars[idx,"LB"] = object@model$pars[idx,"LB"]
+	idx = which(is.na(tmp@model$pars[,"UB"]))
+	tmp@model$pars[idx,"UB"] = object@model$pars[idx,"UB"]
 	return(tmp)
 }
 setReplaceMethod(f="setfixed", signature= c(object = "ARFIMAspec", value = "vector"), definition = .setfixedarfima)
@@ -179,6 +184,11 @@ setReplaceMethod(f="setfixed", signature= c(object = "ARFIMAspec", value = "vect
 					arfima = model$modelinc[4], external.regressors = model$modeldata$mexdata), 
 			distribution.model = model$modeldesc$distribution, fixed.pars  = model$fixed.pars, 
 			start.pars = as.list(start.pars))
+	# ToDo: Need to check that the parameters are not outside the bounds...
+	idx = which(is.na(tmp@model$pars[,"LB"]))
+	tmp@model$pars[idx,"LB"] = object@model$pars[idx,"LB"]
+	idx = which(is.na(tmp@model$pars[,"UB"]))
+	tmp@model$pars[idx,"UB"] = object@model$pars[idx,"UB"]
 	return(tmp)
 }
 

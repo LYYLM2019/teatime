@@ -682,6 +682,11 @@ getspec = function(object)
 				archex = object@model$modelinc[20]), 
 		distribution.model = object@model$modeldesc$distribution, start.pars  = object@model$start.pars, 
 		fixed.pars = object@model$fixed.pars)
+	# should custom bounds be propagated?
+	#idx = which(is.na(tmp@model$pars[,"LB"]))
+	#tmp@model$pars[idx,"LB"] = object@model$pars[idx,"LB"]
+	#idx = which(is.na(tmp@model$pars[,"UB"]))
+	#tmp@model$pars[idx,"UB"] = object@model$pars[idx,"UB"]
 	return(spec)
 }
 
@@ -750,6 +755,11 @@ setGeneric("setfixed<-", function(object, value){standardGeneric("setfixed<-")})
 					archex = model$modelinc[20]), 
 			distribution.model = model$modeldesc$distribution, start.pars  = model$start.pars, 
 			fixed.pars = as.list(fixed.pars))
+	# ToDo: Need to check that the parameters are not outside the bounds...
+	idx = which(is.na(tmp@model$pars[,"LB"]))
+	tmp@model$pars[idx,"LB"] = object@model$pars[idx,"LB"]
+	idx = which(is.na(tmp@model$pars[,"UB"]))
+	tmp@model$pars[idx,"UB"] = object@model$pars[idx,"UB"]
 	return(tmp)
 }
 setReplaceMethod(f="setfixed", signature= c(object = "uGARCHspec", value = "vector"), definition = .setfixed)
@@ -793,6 +803,11 @@ setGeneric("setstart<-", function(object, value){standardGeneric("setstart<-")})
 					archex = model$modelinc[20]), 
 			distribution.model = model$modeldesc$distribution, fixed.pars  = model$fixed.pars, 
 			start.pars = as.list(start.pars))
+	# ToDo: Need to check that the parameters are not outside the bounds...
+	idx = which(is.na(tmp@model$pars[,"LB"]))
+	tmp@model$pars[idx,"LB"] = object@model$pars[idx,"LB"]
+	idx = which(is.na(tmp@model$pars[,"UB"]))
+	tmp@model$pars[idx,"UB"] = object@model$pars[idx,"UB"]
 	return(tmp)
 }
 
