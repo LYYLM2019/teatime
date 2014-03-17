@@ -205,7 +205,7 @@
 		.sd = sd(data)
 		# enforce positivity of lower bound
 		if(is.na(pars[idx["sigma", 1]:idx["sigma", 2], 5])) pars[idx["sigma", 1]:idx["sigma", 2], 5] = .eps else pars[idx["sigma", 1]:idx["sigma", 2], 5] = abs(pars[idx["sigma", 1]:idx["sigma", 2], 5])
-		if(is.na(pars[idx["sigma", 1]:idx["sigma", 2], 6])) pars[idx["sigma", 1]:idx["sigma", 2], 5] = 100*.sd
+		if(is.na(pars[idx["sigma", 1]:idx["sigma", 2], 6])) pars[idx["sigma", 1]:idx["sigma", 2], 6] = 100*.sd
 		if(is.null(start.pars$omega)) pars[idx["sigma", 1]:idx["sigma", 2], 1] = .sd else pars[idx["sigma", 1]:idx["sigma", 2], 1] = abs(start.pars$sigma[1])/dscale
 		if(any(substr(fixed.names, 1, 5) == "sigma")){
 			pars[idx["sigma", 1]:idx["sigma", 2], 1] = as.numeric(fixed.pars$sigma)
